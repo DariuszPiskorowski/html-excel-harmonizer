@@ -16,154 +16,141 @@ interface ParsedGroup {
 export const parseHtmlContent = (htmlContent: string): ParsedGroup[] => {
   console.log("Starting HTML parsing...");
   
-  // Usuń HTML tagi i pozostaw tylko tekst
-  const textContent = htmlContent.replace(/<[^>]*>/g, '\n')
+  // Zamień &nbsp; na spacje i usuń HTML tagi
+  const textContent = htmlContent
+    .replace(/&nbsp;/g, ' ')
+    .replace(/<[^>]*>/g, ' ')
     .replace(/\s+/g, ' ')
-    .replace(/\n+/g, '\n')
     .trim();
   
-  console.log("Text content preview:", textContent.substring(0, 1000));
+  console.log("Text content preview:", textContent.substring(0, 2000));
   
   const groups: ParsedGroup[] = [];
-  const lines = textContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-  
-  console.log("Total lines found:", lines.length);
-  console.log("First 10 lines:", lines.slice(0, 10));
-  
-  let currentGroup: Partial<ParsedGroup> | null = null;
   let groupCounter = 0;
   
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+  // Szukamy wzorców DTC_MASK z kodami w formacie ($xxxxx / xxxxxx)
+  const dtcPattern = /DTC_MASK\s+\$([A-Fa-f0-9]+)\/([A-Fa-f0-9]+)\s+([A-Z0-9]+)\s+\(\$([A-Fa-f0-9]+)\s*\/\s*(\d+)\)\s*([^D]*?)(?=DTC_MASK|$)/g;
+  
+  let match;
+  while ((match = dtcPattern.exec(textContent)) !== null) {
+    groupCounter++;
     
-    // Sprawdź różne możliwe formaty pierwszej linii grupy
-    let firstLineMatch = line.match(/^([A-Fa-f0-9]+)\s*\(([A-Fa-f0-9$]+)\s*\/\s*([A-Fa-f0-9]+)\)\s*(.+)$/);
+    const [fullMatch, mask1, mask2, dtcCode, hexNumber, decNumber, restOfContent] = match;
     
-    // Alternatywny format z spacjami
-    if (!firstLineMatch) {
-      firstLineMatch = line.match(/([A-Fa-f0-9]+)\s+\(([A-Fa-f0-9$]+)\s*\/\s*([A-Fa-f0-9]+)\)\s*(.+)/);
+    console.log(`Found DTC group ${groupCounter}:`, {
+      mask1, mask2, dtcCode, hexNumber, decNumber
+    });
+    
+    // Szukamy opisu w treści
+    let description = "Unknown";
+    const descriptionMatch = restOfContent.match(/DTC text:\s*([^&\s][^&]*?)(?=\s+DTC|$)/);
+    if (descriptionMatch) {
+      description = descriptionMatch[1].trim();
+    } else {
+      // Alternatywnie szukamy opisu przed "DTC text:"
+      const altDescMatch = restOfContent.match(/([A-Za-z][^D]*?)(?=\s+DTC text|$)/);
+      if (altDescMatch) {
+        description = altDescMatch[1].trim();
+      }
     }
     
-    // Jeszcze inny format
-    if (!firstLineMatch) {
-      firstLineMatch = line.match(/([A-Fa-f0-9]{6,})\s*\(\s*([A-Fa-f0-9$]{6,})\s*\/\s*([A-Fa-f0-9]{6,})\s*\)\s*(.+)/);
+    // Tworzenie pierwszej linii w oczekiwanym formacie
+    const firstLine = `${hexNumber} (${mask1}/${mask2}) ${description}`;
+    
+    const group: ParsedGroup = {
+      id: `group-${groupCounter}`,
+      firstLine: firstLine,
+      number1: hexNumber,
+      number2: mask1,
+      number3: mask2,
+      description: description
+    };
+    
+    // Szukamy dodatkowych informacji w treści grupy
+    const groupContent = restOfContent;
+    
+    // Priority
+    const priorityMatch = groupContent.match(/Priority\s+(\d+)/i);
+    if (priorityMatch) {
+      group.priority = priorityMatch[1];
+      console.log(`Found priority: ${group.priority}`);
     }
     
-    // Sprawdź czy linia zawiera charakterystyczne elementy
-    if (!firstLineMatch && line.includes('(') && line.includes('/') && line.includes(')')) {
-      console.log(`Potential group line not matched: ${line}`);
-      // Spróbuj bardziej elastycznego dopasowania
-      const flexMatch = line.match(/([A-Fa-f0-9]+).*?\(([A-Fa-f0-9$]+).*?\/.*?([A-Fa-f0-9]+)\).*?(.+)/);
-      if (flexMatch) {
-        firstLineMatch = flexMatch;
-        console.log("Flexible match found:", flexMatch);
-      }
+    // Malfunction frequency counter
+    const frequencyMatch = groupContent.match(/Malfunction frequency counter\s+(\d+)/i);
+    if (frequencyMatch) {
+      group.frequency = frequencyMatch[1];
+      console.log(`Found frequency: ${group.frequency}`);
     }
     
-    if (firstLineMatch) {
-      // Jeśli mamy poprzednią grupę, dodaj ją do listy
-      if (currentGroup && currentGroup.firstLine) {
-        groups.push(currentGroup as ParsedGroup);
-      }
-      
-      // Rozpocznij nową grupę
-      groupCounter++;
-      currentGroup = {
-        id: `group-${groupCounter}`,
-        firstLine: line,
-        number1: firstLineMatch[1].trim(),
-        number2: firstLineMatch[2].replace('$', '').trim(),
-        number3: firstLineMatch[3].trim(),
-        description: firstLineMatch[4].trim()
-      };
-      
-      console.log(`Found new group ${groupCounter}: ${currentGroup.number1} (${currentGroup.number2} / ${currentGroup.number3})`);
-      continue;
+    // DTC status - szukamy linii z numerem statusu
+    const statusMatch = groupContent.match(/DTC status\s+(\d+)\s+([^0-9]+)/i);
+    if (statusMatch) {
+      group.dtcStatus = `${statusMatch[1]} ${statusMatch[2].trim()}`;
+      console.log(`Found DTC status: ${group.dtcStatus}`);
     }
     
-    // Jeśli mamy aktywną grupę, sprawdź kolejne linie
-    if (currentGroup) {
-      const lowerLine = line.toLowerCase();
-      
-      // Szukaj Date - różne formaty
-      if (lowerLine.includes('date') && !currentGroup.date) {
-        const datePatterns = [
-          /date[:\s]*([^\s,]+)/i,
-          /date[:\s]*reading[:\s]*([^\s,]+)/i,
-          /\b(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})\b/,
-          /\b(\d{4}[-/]\d{1,2}[-/]\d{1,2})\b/
-        ];
-        
-        for (const pattern of datePatterns) {
-          const match = line.match(pattern);
-          if (match) {
-            currentGroup.date = match[1];
-            console.log(`Found date: ${currentGroup.date}`);
-            break;
-          }
-        }
-      }
-      
-      // Szukaj Odometer - różne formaty
-      if (lowerLine.includes('odometer') && !currentGroup.odometer) {
-        const odometerPatterns = [
-          /odometer[:\s]*reading[:\s]*([^\s,]+)/i,
-          /odometer[:\s]*([^\s,]+)/i,
-          /reading[:\s]*([^\s,]+)/i
-        ];
-        
-        for (const pattern of odometerPatterns) {
-          const match = line.match(pattern);
-          if (match) {
-            currentGroup.odometer = match[1];
-            console.log(`Found odometer: ${currentGroup.odometer}`);
-            break;
-          }
-        }
-      }
-      
-      // Szukaj Priority
-      if (lowerLine.includes('priority') && !currentGroup.priority) {
-        const priorityMatch = line.match(/priority[:\s]*([^\s,]+)/i);
-        if (priorityMatch) {
-          currentGroup.priority = priorityMatch[1];
-          console.log(`Found priority: ${currentGroup.priority}`);
-        }
-      }
-      
-      // Szukaj Frequency
-      if ((lowerLine.includes('frequency') || lowerLine.includes('counter')) && !currentGroup.frequency) {
-        const frequencyPatterns = [
-          /frequency[:\s]*counter[:\s]*([^\s,]+)/i,
-          /malfunction[:\s]*frequency[:\s]*counter[:\s]*([^\s,]+)/i,
-          /frequency[:\s]*([^\s,]+)/i,
-          /counter[:\s]*([^\s,]+)/i
-        ];
-        
-        for (const pattern of frequencyPatterns) {
-          const match = line.match(pattern);
-          if (match) {
-            currentGroup.frequency = match[1];
-            console.log(`Found frequency: ${currentGroup.frequency}`);
-            break;
-          }
-        }
-      }
-      
-      // Szukaj DTC Status
-      if (lowerLine.includes('dtc') && lowerLine.includes('status') && !currentGroup.dtcStatus) {
-        const dtcMatch = line.match(/dtc[:\s]*status[:\s]*([^\s,]+)/i);
-        if (dtcMatch) {
-          currentGroup.dtcStatus = dtcMatch[1];
-          console.log(`Found DTC status: ${currentGroup.dtcStatus}`);
-        }
-      }
+    // Date reading (jeśli jest)
+    const dateMatch = groupContent.match(/Date reading:\s*([^\s]+)/i);
+    if (dateMatch) {
+      group.date = dateMatch[1];
+      console.log(`Found date: ${group.date}`);
     }
+    
+    // Odometer reading (jeśli jest)
+    const odometerMatch = groupContent.match(/Odometer reading:\s*([^\s]+)/i);
+    if (odometerMatch) {
+      group.odometer = odometerMatch[1];
+      console.log(`Found odometer: ${group.odometer}`);
+    }
+    
+    groups.push(group);
   }
   
-  // Dodaj ostatnią grupę
-  if (currentGroup && currentGroup.firstLine) {
-    groups.push(currentGroup as ParsedGroup);
+  // Jeśli nie znaleziono żadnych grup DTC_MASK, spróbuj alternatywnego formatu
+  if (groups.length === 0) {
+    console.log("No DTC_MASK groups found, trying alternative format...");
+    
+    // Szukamy wzorców P-kodów bezpośrednio
+    const pCodePattern = /([P][A-Z0-9]{6})\s*\(\$([A-Fa-f0-9]+)\s*\/\s*(\d+)\)\s*([^P]*?)(?=[P][A-Z0-9]{6}|$)/g;
+    
+    let pMatch;
+    while ((pMatch = pCodePattern.exec(textContent)) !== null) {
+      groupCounter++;
+      
+      const [, pCode, hexCode, decCode, content] = pMatch;
+      
+      console.log(`Found P-code group ${groupCounter}:`, {
+        pCode, hexCode, decCode
+      });
+      
+      let description = "Unknown";
+      const descMatch = content.match(/DTC text:\s*([^&\s][^&]*?)(?=\s+DTC|$)/);
+      if (descMatch) {
+        description = descMatch[1].trim();
+      }
+      
+      const group: ParsedGroup = {
+        id: `group-${groupCounter}`,
+        firstLine: `${pCode} (${hexCode}/${decCode}) ${description}`,
+        number1: pCode,
+        number2: hexCode,
+        number3: decCode,
+        description: description
+      };
+      
+      // Dodawanie dodatkowych informacji jak wcześniej
+      const priorityMatch = content.match(/Priority\s+(\d+)/i);
+      if (priorityMatch) group.priority = priorityMatch[1];
+      
+      const frequencyMatch = content.match(/Malfunction frequency counter\s+(\d+)/i);
+      if (frequencyMatch) group.frequency = frequencyMatch[1];
+      
+      const statusMatch = content.match(/DTC status\s+(\d+)\s+([^0-9]+)/i);
+      if (statusMatch) group.dtcStatus = `${statusMatch[1]} ${statusMatch[2].trim()}`;
+      
+      groups.push(group);
+    }
   }
   
   console.log(`Parsed ${groups.length} groups total`);
