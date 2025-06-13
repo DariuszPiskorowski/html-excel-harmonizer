@@ -5,6 +5,8 @@ import { ExcelUploader } from "@/components/ExcelUploader";
 import { ResultsList } from "@/components/ResultsList";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { parseHtmlContent } from "@/utils/htmlParser";
+import { parseExcelFile, matchExcelData, ExcelData } from "@/utils/excelParser";
 
 interface ParsedGroup {
   id: string;
@@ -40,21 +42,42 @@ const Index = () => {
 
     setIsProcessing(true);
     try {
+      console.log("=== Starting file processing ===");
+      
+      // Parsuj plik HTML
       const htmlContent = await htmlFile.text();
       console.log("HTML content loaded, starting parsing...");
       
-      // Tutaj będzie logika parsowania
       const groups = parseHtmlContent(htmlContent);
+      console.log(`HTML parsing complete. Found ${groups.length} groups.`);
       
+      let finalGroups = groups;
+      
+      // Jeśli jest plik Excel, parsuj go i dopasuj dane
       if (excelFile) {
         console.log("Processing Excel file...");
-        // Tutaj będzie logika dopasowywania z Excelem
+        try {
+          const excelData = await parseExcelFile(excelFile);
+          console.log(`Excel parsing complete. Found ${excelData.length} rows.`);
+          
+          finalGroups = matchExcelData(groups, excelData);
+          console.log("Excel data matching complete.");
+        } catch (excelError) {
+          console.error("Excel processing error:", excelError);
+          toast({
+            title: "Ostrzeżenie",
+            description: "Błąd podczas przetwarzania pliku Excel. Kontynuuję bez danych Excel.",
+            variant: "destructive",
+          });
+        }
       }
       
-      setParsedGroups(groups);
+      setParsedGroups(finalGroups);
+      console.log("=== Processing complete ===");
+      
       toast({
         title: "Sukces",
-        description: `Przetworzono ${groups.length} grup danych`,
+        description: `Przetworzono ${finalGroups.length} grup danych`,
       });
     } catch (error) {
       console.error("Error processing files:", error);
@@ -66,16 +89,6 @@ const Index = () => {
     } finally {
       setIsProcessing(false);
     }
-  };
-
-  const parseHtmlContent = (content: string): ParsedGroup[] => {
-    // Podstawowa implementacja parsera - będzie rozwijana
-    const groups: ParsedGroup[] = [];
-    
-    // Symulacja parsowania - na razie zwracam przykładowe dane
-    console.log("Parsing HTML content...", content.substring(0, 200));
-    
-    return groups;
   };
 
   return (
