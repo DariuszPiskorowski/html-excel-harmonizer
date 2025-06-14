@@ -1,4 +1,3 @@
-
 interface ParsedGroup {
   id: string;
   firstLine: string;
@@ -28,8 +27,14 @@ export const parseHtmlContent = (htmlContent: string): ParsedGroup[] => {
   const groups: ParsedGroup[] = [];
   let groupCounter = 0;
   
-  // Wzorce do wyszukiwania dat i odometru - definiujemy na początku
+  // Wzorce do wyszukiwania dat i odometru - zaktualizowane wzorce
   const datePatterns = [
+    // Główny wzorzec dla formatu "Date [czas] - [data]"
+    /Date\s+([0-9]{1,2}:[0-9]{2}:[0-9]{2}\s*-\s*[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{4})/i,
+    // Alternatywne wzorce dla różnych formatów
+    /Date\s+([0-9]{1,2}:[0-9]{2}:[0-9]{2}\s*-\s*[0-9]{1,2}\/[0-9]{1,2}\/[0-9]{2,4})/i,
+    /Date\s+([0-9]{1,2}:[0-9]{2}:[0-9]{2}\s*-\s*[0-9]{4}-[0-9]{1,2}-[0-9]{1,2})/i,
+    // Fallback wzorce dla przypadków bez czasu
     /Date reading[:\s]*([^\s]+)/i,
     /Date[:\s]*([0-9]{1,2}[\/\-\.][0-9]{1,2}[\/\-\.][0-9]{2,4})/i,
     /Date[:\s]*([0-9]{4}[\/\-\.][0-9]{1,2}[\/\-\.][0-9]{1,2})/i,
@@ -111,12 +116,12 @@ export const parseHtmlContent = (htmlContent: string): ParsedGroup[] => {
       console.log(`Found DTC status: ${group.dtcStatus}`);
     }
     
-    // Date reading - różne możliwe formaty
+    // Date reading - różne możliwe formaty, teraz z obsługą czasu
     for (const pattern of datePatterns) {
       const dateMatch = groupContent.match(pattern);
       if (dateMatch) {
         group.date = dateMatch[1];
-        console.log(`Found date: ${group.date}`);
+        console.log(`Found date with time: ${group.date}`);
         break;
       }
     }
@@ -187,11 +192,12 @@ export const parseHtmlContent = (htmlContent: string): ParsedGroup[] => {
       const statusMatch = content.match(/DTC status\s+(\d+)\s+([^0-9\s][^0-9]*?)(?=\s+\d+\s+|$)/i);
       if (statusMatch) group.dtcStatus = `${statusMatch[1]} ${statusMatch[2].trim()}`;
       
-      // Date reading dla P-kodów
+      // Date reading dla P-kodów - z obsługą formatu czas-data
       for (const pattern of datePatterns) {
         const dateMatch = content.match(pattern);
         if (dateMatch) {
           group.date = dateMatch[1];
+          console.log(`Found date with time in P-code: ${group.date}`);
           break;
         }
       }
