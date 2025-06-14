@@ -14,7 +14,14 @@ interface ParsedGroup {
   priority?: string;
   frequency?: string;
   dtcStatus?: string;
-  excelData?: any;
+  excelData?: {
+    dtcText?: string;
+    suspensionPeriod?: string;
+    troubleshootingTime?: string;
+    qualificationCondition?: string;
+    resetCondition?: string;
+    enableCondition?: string;
+  };
 }
 
 interface ResultsListProps {
@@ -22,7 +29,7 @@ interface ResultsListProps {
 }
 
 export const ResultsList = ({ groups }: ResultsListProps) => {
-  // Sortowanie: najpierw grupy z date i odometer, potem reszta
+  // Sort: first groups with date and odometer, then others
   const sortedGroups = [...groups].sort((a, b) => {
     const aHasDateOdometer = a.date && a.odometer;
     const bHasDateOdometer = b.date && b.odometer;
@@ -103,16 +110,40 @@ export const ResultsList = ({ groups }: ResultsListProps) => {
                   <>
                     <Separator />
                     <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                      <span className="font-medium text-sm text-green-800">Excel data (0x{group.number2}):</span>
-                      <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-                        {Object.entries(group.excelData)
-                          .filter(([key, value]) => key !== 'rowIndex' && value !== null && value !== undefined && value !== '')
-                          .map(([key, value]) => (
-                            <div key={key} className="flex justify-between">
-                              <span className="font-medium text-green-700">{key}:</span>
-                              <span className="text-green-600">{String(value)}</span>
-                            </div>
-                          ))}
+                      <span className="font-medium text-sm text-green-800 mb-3 block">
+                        Excel data for Hex ${group.number2}:
+                      </span>
+                      <div className="space-y-2 text-sm">
+                        {group.excelData.suspensionPeriod && (
+                          <div className="flex justify-between">
+                            <span className="font-medium text-green-700">Suspension period:</span>
+                            <span className="text-green-600">{group.excelData.suspensionPeriod}</span>
+                          </div>
+                        )}
+                        {group.excelData.troubleshootingTime && (
+                          <div className="flex justify-between">
+                            <span className="font-medium text-green-700">Troubleshooting/qualification time:</span>
+                            <span className="text-green-600">{group.excelData.troubleshootingTime}</span>
+                          </div>
+                        )}
+                        {group.excelData.qualificationCondition && (
+                          <div className="flex justify-between">
+                            <span className="font-medium text-green-700">Qualification / error setting condition:</span>
+                            <span className="text-green-600">{group.excelData.qualificationCondition}</span>
+                          </div>
+                        )}
+                        {group.excelData.resetCondition && (
+                          <div className="flex justify-between">
+                            <span className="font-medium text-green-700">Reset condition:</span>
+                            <span className="text-green-600">{group.excelData.resetCondition}</span>
+                          </div>
+                        )}
+                        {group.excelData.enableCondition && (
+                          <div className="flex justify-between">
+                            <span className="font-medium text-green-700">EnableCondition:</span>
+                            <span className="text-green-600">{group.excelData.enableCondition}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </>
