@@ -96,18 +96,38 @@ export const parseHtmlContent = (htmlContent: string): ParsedGroup[] => {
       console.log(`Found DTC status: ${group.dtcStatus}`);
     }
     
-    // Date reading (jeśli jest)
-    const dateMatch = groupContent.match(/Date reading:\s*([^\s]+)/i);
-    if (dateMatch) {
-      group.date = dateMatch[1];
-      console.log(`Found date: ${group.date}`);
+    // Date reading - różne możliwe formaty
+    const datePatterns = [
+      /Date reading[:\s]*([^\s]+)/i,
+      /Date[:\s]*([0-9]{1,2}[\/\-\.][0-9]{1,2}[\/\-\.][0-9]{2,4})/i,
+      /Date[:\s]*([0-9]{4}[\/\-\.][0-9]{1,2}[\/\-\.][0-9]{1,2})/i,
+      /Date[:\s]*([0-9]{1,2}[\/\-\.][0-9]{1,2}[\/\-\.][0-9]{2,4}\s+[0-9]{1,2}:[0-9]{2})/i
+    ];
+    
+    for (const pattern of datePatterns) {
+      const dateMatch = groupContent.match(pattern);
+      if (dateMatch) {
+        group.date = dateMatch[1];
+        console.log(`Found date: ${group.date}`);
+        break;
+      }
     }
     
-    // Odometer reading (jeśli jest)
-    const odometerMatch = groupContent.match(/Odometer reading:\s*([^\s]+)/i);
-    if (odometerMatch) {
-      group.odometer = odometerMatch[1];
-      console.log(`Found odometer: ${group.odometer}`);
+    // Odometer reading - różne możliwe formaty
+    const odometerPatterns = [
+      /Odometer reading[:\s]*([^\s]+)/i,
+      /Odometer[:\s]*([0-9]+(?:\.[0-9]+)?)/i,
+      /Mileage[:\s]*([0-9]+(?:\.[0-9]+)?)/i,
+      /Odometer[:\s]*([0-9]+\s*(?:km|miles?))/i
+    ];
+    
+    for (const pattern of odometerPatterns) {
+      const odometerMatch = groupContent.match(pattern);
+      if (odometerMatch) {
+        group.odometer = odometerMatch[1];
+        console.log(`Found odometer: ${group.odometer}`);
+        break;
+      }
     }
     
     groups.push(group);
@@ -166,11 +186,29 @@ export const parseHtmlContent = (htmlContent: string): ParsedGroup[] => {
       const statusMatch = content.match(/DTC status\s+(\d+)\s+([^0-9\s][^0-9]*?)(?=\s+\d+\s+|$)/i);
       if (statusMatch) group.dtcStatus = `${statusMatch[1]} ${statusMatch[2].trim()}`;
       
+      // Date reading dla P-kodów
+      for (const pattern of datePatterns) {
+        const dateMatch = content.match(pattern);
+        if (dateMatch) {
+          group.date = dateMatch[1];
+          break;
+        }
+      }
+      
+      // Odometer reading dla P-kodów
+      for (const pattern of odometerPatterns) {
+        const odometerMatch = content.match(pattern);
+        if (odometerMatch) {
+          group.odometer = odometerMatch[1];
+          break;
+        }
+      }
+      
       groups.push(group);
     }
   }
   
   console.log(`Parsed ${groups.length} groups total`);
-  console.log("Sample groups:", groups.slice(0, 3));
+  console.log("Sample groups with date/odometer:", groups.filter(g => g.date || g.odometer));
   return groups;
 };
