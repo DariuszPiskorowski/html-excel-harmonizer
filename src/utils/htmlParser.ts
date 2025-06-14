@@ -28,6 +28,21 @@ export const parseHtmlContent = (htmlContent: string): ParsedGroup[] => {
   const groups: ParsedGroup[] = [];
   let groupCounter = 0;
   
+  // Wzorce do wyszukiwania dat i odometru - definiujemy na początku
+  const datePatterns = [
+    /Date reading[:\s]*([^\s]+)/i,
+    /Date[:\s]*([0-9]{1,2}[\/\-\.][0-9]{1,2}[\/\-\.][0-9]{2,4})/i,
+    /Date[:\s]*([0-9]{4}[\/\-\.][0-9]{1,2}[\/\-\.][0-9]{1,2})/i,
+    /Date[:\s]*([0-9]{1,2}[\/\-\.][0-9]{1,2}[\/\-\.][0-9]{2,4}\s+[0-9]{1,2}:[0-9]{2})/i
+  ];
+  
+  const odometerPatterns = [
+    /Odometer reading[:\s]*([^\s]+)/i,
+    /Odometer[:\s]*([0-9]+(?:\.[0-9]+)?)/i,
+    /Mileage[:\s]*([0-9]+(?:\.[0-9]+)?)/i,
+    /Odometer[:\s]*([0-9]+\s*(?:km|miles?))/i
+  ];
+  
   // Główny wzorzec DTC_MASK - używamy globalnego flag i reset regex
   const dtcPattern = /DTC_MASK\s+\$([A-Fa-f0-9]+)\/([A-Fa-f0-9]+)\s+([A-Z0-9]+)\s+\(\$([A-Fa-f0-9]+)\s*\/\s*(\d+)\)/g;
   
@@ -97,13 +112,6 @@ export const parseHtmlContent = (htmlContent: string): ParsedGroup[] => {
     }
     
     // Date reading - różne możliwe formaty
-    const datePatterns = [
-      /Date reading[:\s]*([^\s]+)/i,
-      /Date[:\s]*([0-9]{1,2}[\/\-\.][0-9]{1,2}[\/\-\.][0-9]{2,4})/i,
-      /Date[:\s]*([0-9]{4}[\/\-\.][0-9]{1,2}[\/\-\.][0-9]{1,2})/i,
-      /Date[:\s]*([0-9]{1,2}[\/\-\.][0-9]{1,2}[\/\-\.][0-9]{2,4}\s+[0-9]{1,2}:[0-9]{2})/i
-    ];
-    
     for (const pattern of datePatterns) {
       const dateMatch = groupContent.match(pattern);
       if (dateMatch) {
@@ -114,13 +122,6 @@ export const parseHtmlContent = (htmlContent: string): ParsedGroup[] => {
     }
     
     // Odometer reading - różne możliwe formaty
-    const odometerPatterns = [
-      /Odometer reading[:\s]*([^\s]+)/i,
-      /Odometer[:\s]*([0-9]+(?:\.[0-9]+)?)/i,
-      /Mileage[:\s]*([0-9]+(?:\.[0-9]+)?)/i,
-      /Odometer[:\s]*([0-9]+\s*(?:km|miles?))/i
-    ];
-    
     for (const pattern of odometerPatterns) {
       const odometerMatch = groupContent.match(pattern);
       if (odometerMatch) {
