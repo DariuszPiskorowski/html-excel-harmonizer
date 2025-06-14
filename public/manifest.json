@@ -1,0 +1,17 @@
+
+{
+  "name": "HTML Excel Harmonizer",
+  "short_name": "Excel Harmonizer",
+  "description": "Tool for analyzing HTML diagnostic data and matching with Excel data",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "32x32",
+      "type": "image/x-icon"
+    }
+  ]
+}
