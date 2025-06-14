@@ -50,7 +50,7 @@ export const FileUploader = ({ onFileSelect, selectedFile, accept, title }: File
             <Upload className="h-8 w-8 text-muted-foreground" />
             <p className="text-sm font-medium">{title}</p>
             <p className="text-xs text-muted-foreground">
-              Lub kliknij, aby wybrać plik
+              Or click to select file
             </p>
           </>
         )}

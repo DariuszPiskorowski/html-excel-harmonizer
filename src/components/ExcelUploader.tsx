@@ -47,9 +47,9 @@ export const ExcelUploader = ({ onFileSelect, selectedFile }: ExcelUploaderProps
         ) : (
           <>
             <Upload className="h-8 w-8 text-muted-foreground" />
-            <p className="text-sm font-medium">Przeciągnij plik Excel tutaj</p>
+            <p className="text-sm font-medium">Drag Excel file here</p>
             <p className="text-xs text-muted-foreground">
-              Lub kliknij, aby wybrać plik (.xlsx, .xls)
+              Or click to select file (.xlsx, .xls)
             </p>
           </>
         )}
