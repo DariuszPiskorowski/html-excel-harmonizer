@@ -8,7 +8,6 @@ interface ParsedGroup {
   firstLine: string;
   number1: string;
   number2: string;
-  number3: string;
   description: string;
   date?: string;
   odometer?: string;
@@ -40,9 +39,9 @@ export const ResultsList = ({ groups }: ResultsListProps) => {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-semibold">Wyniki analizy</h2>
+        <h2 className="text-2xl font-semibold">Analysis Results</h2>
         <p className="text-muted-foreground">
-          Znaleziono {groups.length} grup błędów diagnostycznych
+          Found {groups.length} diagnostic error groups
         </p>
       </div>
       
@@ -57,7 +56,7 @@ export const ResultsList = ({ groups }: ResultsListProps) => {
                   </span>
                   <div className="flex gap-2">
                     <Badge variant={group.date && group.odometer ? "default" : "secondary"}>
-                      {group.date && group.odometer ? "Kompletne dane" : "Niekompletne"}
+                      {group.date && group.odometer ? "Complete data" : "Incomplete"}
                     </Badge>
                     {group.excelData && (
                       <Badge variant="outline" className="bg-green-50">
@@ -70,25 +69,24 @@ export const ResultsList = ({ groups }: ResultsListProps) => {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                   <div className="space-y-1">
-                    <span className="font-medium text-muted-foreground">Identyfikatory:</span>
+                    <span className="font-medium text-muted-foreground">Identifiers:</span>
                     <div className="space-y-1">
-                      <p><span className="font-medium">Numer1:</span> {group.number1}</p>
-                      <p><span className="font-medium">Numer2:</span> ${group.number2}</p>
-                      <p><span className="font-medium">Numer3:</span> {group.number3}</p>
+                      <p><span className="font-medium">Code:</span> {group.number1}</p>
+                      <p><span className="font-medium">Hex:</span> ${group.number2}</p>
                     </div>
                   </div>
                   
                   <div className="space-y-1">
-                    <span className="font-medium text-muted-foreground">Dane diagnostyczne:</span>
+                    <span className="font-medium text-muted-foreground">Diagnostic data:</span>
                     <div className="space-y-1">
-                      <p><span className="font-medium">Date:</span> {group.date || "Brak danych"}</p>
-                      <p><span className="font-medium">Odometer:</span> {group.odometer || "Brak danych"}</p>
+                      <p><span className="font-medium">Date:</span> {group.date || "No data"}</p>
+                      <p><span className="font-medium">Odometer:</span> {group.odometer || "No data"}</p>
                       {group.priority && <p><span className="font-medium">Priority:</span> {group.priority}</p>}
                     </div>
                   </div>
                   
                   <div className="space-y-1">
-                    <span className="font-medium text-muted-foreground">Status i częstotliwość:</span>
+                    <span className="font-medium text-muted-foreground">Status and frequency:</span>
                     <div className="space-y-1">
                       {group.frequency && <p><span className="font-medium">Frequency:</span> {group.frequency}</p>}
                       {group.dtcStatus && <p><span className="font-medium">DTC Status:</span> {group.dtcStatus}</p>}
@@ -97,7 +95,7 @@ export const ResultsList = ({ groups }: ResultsListProps) => {
                 </div>
                 
                 <div className="bg-muted/30 p-3 rounded-lg">
-                  <span className="font-medium text-sm">Opis:</span>
+                  <span className="font-medium text-sm">Description:</span>
                   <p className="text-sm mt-1">{group.description}</p>
                 </div>
                 
@@ -105,7 +103,7 @@ export const ResultsList = ({ groups }: ResultsListProps) => {
                   <>
                     <Separator />
                     <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                      <span className="font-medium text-sm text-green-800">Dane z Excel (0x{group.number2}):</span>
+                      <span className="font-medium text-sm text-green-800">Excel data (0x{group.number2}):</span>
                       <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
                         {Object.entries(group.excelData)
                           .filter(([key, value]) => key !== 'rowIndex' && value !== null && value !== undefined && value !== '')

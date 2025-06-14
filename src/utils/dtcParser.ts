@@ -76,21 +76,20 @@ export const parseDtcMaskGroups = (textContent: string): ParsedGroup[] => {
     console.log(`Group ${groupCounter} content length:`, groupContent.length);
     
     // Szukamy opisu w treści grupy
-    let description = "not Available";
+    let description = "Not Available";
     const descriptionMatch = groupContent.match(/DTC text:\s*([^&\s][^&]*?)(?=\s+DTC|$)/);
     if (descriptionMatch) {
       description = descriptionMatch[1].trim();
     }
     
-    // Tworzenie pierwszej linii w oczekiwanym formacie
-    const firstLine = `${dtcCode} (${hexNumber}/${decNumber}) ${description}`;
+    // Tworzenie pierwszej linii w oczekiwanym formacie (bez number3)
+    const firstLine = `${dtcCode} (${hexNumber}) ${description}`;
     
     const group: ParsedGroup = {
       id: `group-${groupCounter}`,
       firstLine: firstLine,
       number1: dtcCode,
       number2: hexNumber,
-      number3: decNumber,
       description: description
     };
     
@@ -141,10 +140,9 @@ export const parsePCodeGroups = (textContent: string): ParsedGroup[] => {
     
     const group: ParsedGroup = {
       id: `group-${groupCounter}`,
-      firstLine: `${pCode} (${hexCode}/${decCode}) ${description}`,
+      firstLine: `${pCode} (${hexCode}) ${description}`,
       number1: pCode,
       number2: hexCode,
-      number3: decCode,
       description: description
     };
     

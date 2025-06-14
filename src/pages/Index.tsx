@@ -13,7 +13,6 @@ interface ParsedGroup {
   firstLine: string;
   number1: string;
   number2: string;
-  number3: string;
   description: string;
   date?: string;
   odometer?: string;
@@ -33,8 +32,8 @@ const Index = () => {
   const handleSearch = async () => {
     if (!htmlFile) {
       toast({
-        title: "Błąd",
-        description: "Proszę wybrać plik HTML",
+        title: "Error",
+        description: "Please select an HTML file",
         variant: "destructive",
       });
       return;
@@ -65,8 +64,8 @@ const Index = () => {
         } catch (excelError) {
           console.error("Excel processing error:", excelError);
           toast({
-            title: "Ostrzeżenie",
-            description: "Błąd podczas przetwarzania pliku Excel. Kontynuuję bez danych Excel.",
+            title: "Warning",
+            description: "Error processing Excel file. Continuing without Excel data.",
             variant: "destructive",
           });
         }
@@ -76,14 +75,14 @@ const Index = () => {
       console.log("=== Processing complete ===");
       
       toast({
-        title: "Sukces",
-        description: `Przetworzono ${finalGroups.length} grup danych`,
+        title: "Success",
+        description: `Processed ${finalGroups.length} data groups`,
       });
     } catch (error) {
       console.error("Error processing files:", error);
       toast({
-        title: "Błąd",
-        description: "Wystąpił błąd podczas przetwarzania plików",
+        title: "Error",
+        description: "An error occurred while processing files",
         variant: "destructive",
       });
     } finally {
@@ -97,23 +96,23 @@ const Index = () => {
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold">HTML Excel Harmonizer</h1>
           <p className="text-muted-foreground">
-            Aplikacja do analizy plików HTML z błędami diagnostycznymi
+            Application for analyzing HTML files with diagnostic errors
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Plik HTML</h2>
+            <h2 className="text-xl font-semibold">HTML File</h2>
             <FileUploader
               onFileSelect={setHtmlFile}
               selectedFile={htmlFile}
               accept=".html,.htm"
-              title="Przeciągnij plik HTML tutaj"
+              title="Drag HTML file here"
             />
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Plik Excel (opcjonalny)</h2>
+            <h2 className="text-xl font-semibold">Excel File (optional)</h2>
             <ExcelUploader
               onFileSelect={setExcelFile}
               selectedFile={excelFile}
@@ -128,7 +127,7 @@ const Index = () => {
             size="lg"
             className="px-8"
           >
-            {isProcessing ? "Przetwarzanie..." : "Search"}
+            {isProcessing ? "Processing..." : "Search"}
           </Button>
         </div>
 
