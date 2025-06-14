@@ -81,8 +81,8 @@ export const ResultsList = ({ groups }: ResultsListProps) => {
                   <div className="space-y-1">
                     <span className="font-medium text-muted-foreground">Dane diagnostyczne:</span>
                     <div className="space-y-1">
-                      {group.date && <p><span className="font-medium">Date:</span> {group.date}</p>}
-                      {group.odometer && <p><span className="font-medium">Odometer:</span> {group.odometer}</p>}
+                      <p><span className="font-medium">Date:</span> {group.date || "Brak danych"}</p>
+                      <p><span className="font-medium">Odometer:</span> {group.odometer || "Brak danych"}</p>
                       {group.priority && <p><span className="font-medium">Priority:</span> {group.priority}</p>}
                     </div>
                   </div>
