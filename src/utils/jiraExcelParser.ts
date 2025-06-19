@@ -27,10 +27,18 @@ export const parseJiraExcelFile = async (file: File): Promise<any[]> => {
         
         console.log("Workbook sheet names:", workbook.SheetNames);
         
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
+        // Szukaj arkusza o nazwie "Exporter"
+        const exporterSheetName = workbook.SheetNames.find(name => name === "Exporter");
         
-        console.log(`Processing Jira sheet: ${firstSheetName}`);
+        if (!exporterSheetName) {
+          console.error("Sheet 'Exporter' not found in Jira Excel file!");
+          console.log("Available sheets:", workbook.SheetNames);
+          reject(new Error("Sheet 'Exporter' not found in Jira Excel file"));
+          return;
+        }
+        
+        const worksheet = workbook.Sheets[exporterSheetName];
+        console.log(`Processing Jira sheet: ${exporterSheetName}`);
         
         const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
         console.log(`Jira Excel total rows: ${jsonData.length}`);
