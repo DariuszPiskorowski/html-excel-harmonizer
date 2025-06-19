@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { parseHtmlContent } from "@/utils/htmlParser";
 import { parseExcelFile, matchExcelData, ExcelData } from "@/utils/excelParser";
+import { parseJiraExcelFile, matchJiraExcelData } from "@/utils/jiraExcelParser";
 
 interface ParsedGroup {
   id: string;
@@ -21,6 +22,13 @@ interface ParsedGroup {
   frequency?: string;
   dtcStatus?: string;
   excelData?: any;
+  jiraData?: Array<{
+    creationDate?: string;
+    link?: string;
+    description?: string;
+    status?: string;
+    fix?: string;
+  }>;
 }
 
 const Index = () => {
@@ -54,28 +62,42 @@ const Index = () => {
       
       let finalGroups = groups;
       
-      // Jeśli jest plik Excel, parsuj go i dopasuj dane
+      // Jeśli jest plik DTC Excel, parsuj go i dopasuj dane
       if (excelFile) {
-        console.log("Processing Excel file...");
+        console.log("Processing DTC Excel file...");
         try {
           const excelData = await parseExcelFile(excelFile);
-          console.log(`Excel parsing complete. Found ${excelData.length} rows.`);
+          console.log(`DTC Excel parsing complete. Found ${excelData.length} rows.`);
           
-          finalGroups = matchExcelData(groups, excelData);
-          console.log("Excel data matching complete.");
+          finalGroups = matchExcelData(finalGroups, excelData);
+          console.log("DTC Excel data matching complete.");
         } catch (excelError) {
-          console.error("Excel processing error:", excelError);
+          console.error("DTC Excel processing error:", excelError);
           toast({
             title: "Warning",
-            description: "Error processing Excel file. Continuing without Excel data.",
+            description: "Error processing DTC Excel file. Continuing without DTC Excel data.",
             variant: "destructive",
           });
         }
       }
 
-      // TODO: Add Jira Excel processing logic here when needed
+      // Jeśli jest plik Jira Excel, parsuj go i dopasuj dane
       if (jiraExcelFile) {
-        console.log("Jira Excel file selected, processing logic to be implemented...");
+        console.log("Processing Jira Excel file...");
+        try {
+          const jiraData = await parseJiraExcelFile(jiraExcelFile);
+          console.log(`Jira Excel parsing complete. Found ${jiraData.length} rows.`);
+          
+          finalGroups = matchJiraExcelData(finalGroups, jiraData);
+          console.log("Jira Excel data matching complete.");
+        } catch (jiraError) {
+          console.error("Jira Excel processing error:", jiraError);
+          toast({
+            title: "Warning",
+            description: "Error processing Jira Excel file. Continuing without Jira Excel data.",
+            variant: "destructive",
+          });
+        }
       }
       
       setParsedGroups(finalGroups);

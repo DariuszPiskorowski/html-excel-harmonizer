@@ -2,6 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { ExternalLink } from "lucide-react";
 
 interface ParsedGroup {
   id: string;
@@ -22,6 +23,13 @@ interface ParsedGroup {
     resetCondition?: string;
     enableCondition?: string;
   };
+  jiraData?: Array<{
+    creationDate?: string;
+    link?: string;
+    description?: string;
+    status?: string;
+    fix?: string;
+  }>;
 }
 
 interface ResultsListProps {
@@ -67,7 +75,12 @@ export const ResultsList = ({ groups }: ResultsListProps) => {
                     </Badge>
                     {group.excelData && (
                       <Badge variant="outline" className="bg-green-50">
-                        Excel ✓
+                        DTC Excel ✓
+                      </Badge>
+                    )}
+                    {group.jiraData && group.jiraData.length > 0 && (
+                      <Badge variant="outline" className="bg-blue-50">
+                        Jira Excel ({group.jiraData.length})
                       </Badge>
                     )}
                   </div>
@@ -111,7 +124,7 @@ export const ResultsList = ({ groups }: ResultsListProps) => {
                     <Separator />
                     <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                       <span className="font-medium text-sm text-green-800 mb-3 block">
-                        Excel data for Hex ${group.number2}:
+                        DTC Excel data for Hex ${group.number2}:
                       </span>
                       <div className="space-y-2 text-sm">
                         {group.excelData.suspensionPeriod && (
@@ -144,6 +157,63 @@ export const ResultsList = ({ groups }: ResultsListProps) => {
                             <span className="text-green-600">{group.excelData.enableCondition}</span>
                           </div>
                         )}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {group.jiraData && group.jiraData.length > 0 && (
+                  <>
+                    <Separator />
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                      <span className="font-medium text-sm text-blue-800 mb-3 block">
+                        Jira Excel data for Hex ${group.number2} ({group.jiraData.length} entries):
+                      </span>
+                      <div className="space-y-4">
+                        {group.jiraData.map((jiraEntry, jiraIndex) => (
+                          <div key={jiraIndex} className="bg-white p-3 rounded border border-blue-200">
+                            <div className="space-y-2 text-sm">
+                              {jiraEntry.creationDate && (
+                                <div className="flex justify-between">
+                                  <span className="font-medium text-blue-700">Creation Date:</span>
+                                  <span className="text-blue-600">{jiraEntry.creationDate}</span>
+                                </div>
+                              )}
+                              {jiraEntry.description && (
+                                <div>
+                                  <span className="font-medium text-blue-700">Description:</span>
+                                  <p className="text-blue-600 mt-1">{jiraEntry.description}</p>
+                                </div>
+                              )}
+                              {jiraEntry.status && (
+                                <div className="flex justify-between">
+                                  <span className="font-medium text-blue-700">Status:</span>
+                                  <span className="text-blue-600">{jiraEntry.status}</span>
+                                </div>
+                              )}
+                              {jiraEntry.fix && (
+                                <div>
+                                  <span className="font-medium text-blue-700">Fix:</span>
+                                  <p className="text-blue-600 mt-1">{jiraEntry.fix}</p>
+                                </div>
+                              )}
+                              {jiraEntry.link && (
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-blue-700">Link:</span>
+                                  <a 
+                                    href={jiraEntry.link} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 hover:text-blue-800 underline flex items-center gap-1"
+                                  >
+                                    Open Jira Issue
+                                    <ExternalLink className="h-3 w-3" />
+                                  </a>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </>
