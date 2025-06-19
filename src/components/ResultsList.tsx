@@ -196,31 +196,27 @@ export const ResultsList = ({ groups }: ResultsListProps) => {
                               <div key={jiraIndex} className="bg-white p-3 rounded border border-blue-200">
                                 <div className="space-y-2 text-sm">
                                   {jiraEntry.creationDate && (
-                                    <div className="flex justify-between">
-                                      <span className="font-medium text-blue-700">Creation Date:</span>
-                                      <span className="text-blue-600">{jiraEntry.creationDate}</span>
-                                    </div>
-                                  )}
-                                  {jiraEntry.description && (
-                                    <div>
-                                      <span className="font-medium text-blue-700">Description:</span>
-                                      <p className="text-blue-600 mt-1">{jiraEntry.description}</p>
-                                    </div>
+                                    <p className="text-blue-600">
+                                      <span className="font-medium text-blue-700">Creation Date:</span> {jiraEntry.creationDate}
+                                    </p>
                                   )}
                                   {jiraEntry.status && (
-                                    <div className="flex justify-between">
-                                      <span className="font-medium text-blue-700">Status:</span>
-                                      <span className="text-blue-600">{jiraEntry.status}</span>
-                                    </div>
+                                    <p className="text-blue-600">
+                                      <span className="font-medium text-blue-700">Status:</span> {jiraEntry.status}
+                                    </p>
+                                  )}
+                                  {jiraEntry.description && (
+                                    <p className="text-blue-600">
+                                      <span className="font-medium text-blue-700">Description:</span> {jiraEntry.description}
+                                    </p>
                                   )}
                                   {jiraEntry.fix && (
-                                    <div>
-                                      <span className="font-medium text-blue-700">Fix:</span>
-                                      <p className="text-blue-600 mt-1">{jiraEntry.fix}</p>
-                                    </div>
+                                    <p className="text-blue-600">
+                                      <span className="font-medium text-blue-700">Fix:</span> {jiraEntry.fix}
+                                    </p>
                                   )}
                                   {jiraEntry.link && (
-                                    <div className="flex items-center gap-2">
+                                    <p className="flex items-center gap-2">
                                       <span className="font-medium text-blue-700">Link:</span>
                                       <a 
                                         href={jiraEntry.link} 
@@ -228,10 +224,10 @@ export const ResultsList = ({ groups }: ResultsListProps) => {
                                         rel="noopener noreferrer"
                                         className="text-blue-600 hover:text-blue-800 underline flex items-center gap-1"
                                       >
-                                        Open Jira Issue
+                                        {jiraEntry.link}
                                         <ExternalLink className="h-3 w-3" />
                                       </a>
-                                    </div>
+                                    </p>
                                   )}
                                 </div>
                               </div>
