@@ -1,4 +1,5 @@
 
+
 import * as XLSX from 'xlsx';
 
 export interface JiraExcelData {
@@ -53,7 +54,7 @@ export const parseJiraExcelFile = async (file: File): Promise<any[]> => {
           const parsedRow = {
             rowIndex: index,
             columnA: row[0], // Creation date
-            columnB: row[1], // Link - DOKŁADNIE jak w pliku
+            columnB: row[1], // Link - DOKŁADNIE jak w pliku Excel
             columnC: row[2], // Column C
             columnD: row[3], // Description (hex number search)
             columnE: row[4], // Status
@@ -63,7 +64,7 @@ export const parseJiraExcelFile = async (file: File): Promise<any[]> => {
           };
           
           console.log(`Parsed Jira row ${index}:`, parsedRow);
-          console.log(`RAW LINK VALUE from Excel (columnB):`, row[1]);
+          console.log(`EXACT LINK VALUE from Excel (columnB):`, row[1]);
           console.log(`TYPEOF columnB:`, typeof row[1]);
           
           return parsedRow;
@@ -171,25 +172,21 @@ export const matchJiraExcelData = (htmlGroups: any[], jiraData: any[]): any[] =>
     
     if (matchingRows.length > 0) {
       const jiraMatches = matchingRows.map(row => {
-        // NIE ZMIENIAJ LINKÓW! Użyj dokładnie tego co jest w columnB
-        const rawLink = row.columnB;
-        let cleanLink = null;
+        // UŻYJ DOKŁADNIE TEGO LINKU JAK W PLIKU EXCEL - BEZ ŻADNYCH ZMIAN!
+        const exactLink = row.columnB;
         
-        if (rawLink !== undefined && rawLink !== null && rawLink !== '') {
-          // Tylko wyczyść podstawowe whitespace, ale NIE ZMIENIAJ zawartości linku
-          cleanLink = String(rawLink).trim();
-          console.log(`RAW LINK from Excel: "${rawLink}"`);
-          console.log(`CLEANED LINK (only trimmed): "${cleanLink}"`);
-        }
+        console.log(`ORIGINAL EXCEL LINK (columnB):`, exactLink);
+        console.log(`LINK TYPE:`, typeof exactLink);
         
         const jiraMatch = {
           creationDate: row.columnA ? formatJiraDate(row.columnA.toString()) : undefined,
-          link: cleanLink || undefined, // DOKŁADNIE jak w pliku, tylko trim()
+          link: exactLink !== undefined && exactLink !== null && exactLink !== '' ? String(exactLink) : undefined,
           description: row.columnD?.toString() || undefined,
           status: row.columnE?.toString() || undefined,
           fix: row.columnG?.toString() || undefined
         };
-        console.log(`Created Jira match with ORIGINAL LINK:`, jiraMatch);
+        
+        console.log(`FINAL JIRA MATCH WITH EXACT LINK:`, jiraMatch);
         return jiraMatch;
       });
       
@@ -250,3 +247,4 @@ const formatJiraDate = (dateValue: string | number): string => {
     return String(dateValue);
   }
 };
+
