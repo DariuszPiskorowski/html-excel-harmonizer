@@ -39,7 +39,8 @@ export const parseJiraExcelFile = async (file: File): Promise<any[]> => {
         });
         
         console.log(`Parsed ${result.length} Jira Excel rows`);
-        resolve(result);
+        console.log("Sample Jira data:", result.slice(0, 3));
+        return resolve(result);
       } catch (error) {
         console.error("Error parsing Jira Excel file:", error);
         reject(error);
@@ -53,18 +54,31 @@ export const parseJiraExcelFile = async (file: File): Promise<any[]> => {
 
 export const matchJiraExcelData = (htmlGroups: any[], jiraData: any[]): any[] => {
   console.log("Starting Jira Excel data matching...");
+  console.log("HTML groups to match:", htmlGroups.map(g => ({ number2: g.number2 })));
+  console.log("Jira data available:", jiraData.map(j => ({ columnD: j.columnD })));
   
   return htmlGroups.map(group => {
     const htmlHex = group.number2.replace('$', '').toUpperCase();
     console.log(`Searching for hex ${htmlHex} in Jira Excel data...`);
     
     // Find all matching rows (not just first one)
-    const matchingRows = jiraData.filter(row => {
-      const jiraHex = row.columnD?.toString().replace('$', '').replace('0x', '').replace('0X', '').toUpperCase();
-      const match = jiraHex === htmlHex;
+    const matchingRows = jiraData.filter((row, index) => {
+      const jiraHexRaw = row.columnD?.toString() || '';
+      console.log(`Row ${index}: columnD = "${jiraHexRaw}"`);
+      
+      // Try different variations of hex matching
+      const jiraHexVariations = [
+        jiraHexRaw.toUpperCase(),
+        jiraHexRaw.replace('$', '').toUpperCase(),
+        jiraHexRaw.replace('0x', '').toUpperCase(),
+        jiraHexRaw.replace('0X', '').toUpperCase(),
+        jiraHexRaw.replace(/[^A-Fa-f0-9]/g, '').toUpperCase()
+      ];
+      
+      const match = jiraHexVariations.some(variation => variation === htmlHex);
       
       if (match) {
-        console.log(`Found Jira match: HTML ${htmlHex} matches Jira ${jiraHex}`);
+        console.log(`✓ MATCH FOUND: HTML ${htmlHex} matches Jira ${jiraHexRaw} (variations: ${jiraHexVariations.join(', ')})`);
       }
       
       return match;
@@ -86,7 +100,7 @@ export const matchJiraExcelData = (htmlGroups: any[], jiraData: any[]): any[] =>
         jiraData: jiraMatches
       };
     } else {
-      console.log(`No Jira matches found for ${group.number2} (${htmlHex})`);
+      console.log(`❌ No Jira matches found for ${group.number2} (${htmlHex})`);
       return group;
     }
   });
