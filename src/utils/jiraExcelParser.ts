@@ -25,8 +25,10 @@ export const parseJiraExcelFile = async (file: File): Promise<any[]> => {
         console.log(`Processing Jira sheet: ${firstSheetName}`);
         
         const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-        console.log("Jira Excel raw data preview (first 10 rows):", jsonData.slice(0, 10));
+        console.log(`Jira Excel total rows: ${jsonData.length}`);
+        console.log("Jira Excel raw data preview (first 5 rows):", jsonData.slice(0, 5));
         
+        // Przetwarzaj WSZYSTKIE wiersze (pomijając tylko nagłówek)
         const result = jsonData.slice(1).map((row: any[], index) => {
           const parsedRow = {
             rowIndex: index,
@@ -37,17 +39,20 @@ export const parseJiraExcelFile = async (file: File): Promise<any[]> => {
             columnG: row[6]  // Fix
           };
           
-          console.log(`Jira Row ${index}:`, parsedRow);
           return parsedRow;
         });
         
-        console.log(`Parsed ${result.length} Jira Excel rows`);
-        console.log("All Jira data with columnD values:", result.map((r, i) => ({ 
+        console.log(`Parsed ${result.length} Jira Excel rows (wszystkie wiersze)`);
+        
+        // Pokazuj wszystkie wartości columnD dla diagnostyki
+        const columnDValues = result.map((r, i) => ({ 
           rowIndex: i, 
           columnD: r.columnD,
           columnDType: typeof r.columnD,
           columnDString: String(r.columnD || '').trim()
-        })));
+        }));
+        
+        console.log("Wszystkie wartości columnD z Jira Excel:", columnDValues);
         
         return resolve(result);
       } catch (error) {
@@ -62,14 +67,17 @@ export const parseJiraExcelFile = async (file: File): Promise<any[]> => {
 };
 
 export const matchJiraExcelData = (htmlGroups: any[], jiraData: any[]): any[] => {
-  console.log("=== STARTING JIRA EXCEL DATA MATCHING ===");
-  console.log("HTML groups to match:", htmlGroups.map(g => ({ 
+  console.log("=== ROZPOCZYNAM DOPASOWYWANIE DANYCH JIRA EXCEL ===");
+  console.log(`Grupy HTML do dopasowania: ${htmlGroups.length}`);
+  console.log(`Wiersze Jira do przeszukania: ${jiraData.length}`);
+  
+  console.log("HTML groups number2 values:", htmlGroups.map(g => ({ 
     id: g.id, 
     number2: g.number2,
     number2Clean: g.number2.replace('$', '').toUpperCase()
   })));
   
-  console.log("Jira data column D values:", jiraData.map((j, i) => ({ 
+  console.log("Wszystkie wartości Jira columnD:", jiraData.map((j, i) => ({ 
     rowIndex: i,
     columnD: j.columnD,
     columnDType: typeof j.columnD,
@@ -79,19 +87,19 @@ export const matchJiraExcelData = (htmlGroups: any[], jiraData: any[]): any[] =>
   
   return htmlGroups.map(group => {
     const htmlHex = group.number2.replace('$', '').toUpperCase();
-    console.log(`\n--- Searching for hex "${htmlHex}" (from "${group.number2}") ---`);
+    console.log(`\n--- SZUKAM HEX "${htmlHex}" (z "${group.number2}") ---`);
     
-    // Find all matching rows (not just first one)
+    // Znajdź WSZYSTKIE pasujące wiersze (nie tylko pierwszy)
     const matchingRows = jiraData.filter((row, index) => {
       const jiraHexRaw = String(row.columnD || '').trim();
-      console.log(`  Checking Row ${index}: columnD = "${jiraHexRaw}" (type: ${typeof row.columnD})`);
+      console.log(`  Sprawdzam wiersz ${index}: columnD = "${jiraHexRaw}" (typ: ${typeof row.columnD})`);
       
       if (!jiraHexRaw) {
-        console.log(`    ❌ Empty columnD value`);
+        console.log(`    ❌ Pusta wartość columnD`);
         return false;
       }
       
-      // Try different variations of hex matching
+      // Wypróbuj różne warianty dopasowania hex
       const jiraHexVariations = [
         jiraHexRaw.toUpperCase(),
         jiraHexRaw.replace('$', '').toUpperCase(),
@@ -101,8 +109,8 @@ export const matchJiraExcelData = (htmlGroups: any[], jiraData: any[]): any[] =>
         jiraHexRaw.replace(/\s+/g, '').toUpperCase()
       ];
       
-      console.log(`    Variations to test: [${jiraHexVariations.join(', ')}]`);
-      console.log(`    Looking for: "${htmlHex}"`);
+      console.log(`    Warianty do testowania: [${jiraHexVariations.join(', ')}]`);
+      console.log(`    Szukam: "${htmlHex}"`);
       
       const match = jiraHexVariations.some(variation => {
         const isMatch = variation === htmlHex;
@@ -111,16 +119,16 @@ export const matchJiraExcelData = (htmlGroups: any[], jiraData: any[]): any[] =>
       });
       
       if (match) {
-        console.log(`    ✅ MATCH FOUND: HTML "${htmlHex}" matches Jira "${jiraHexRaw}"`);
+        console.log(`    ✅ DOPASOWANIE ZNALEZIONE: HTML "${htmlHex}" pasuje do Jira "${jiraHexRaw}"`);
       } else {
-        console.log(`    ❌ No match for "${jiraHexRaw}"`);
+        console.log(`    ❌ Brak dopasowania dla "${jiraHexRaw}"`);
       }
       
       return match;
     });
     
     if (matchingRows.length > 0) {
-      console.log(`✅ Found ${matchingRows.length} Jira matches for ${group.number2}`);
+      console.log(`✅ Znaleziono ${matchingRows.length} dopasowań Jira dla ${group.number2}`);
       
       const jiraMatches: JiraExcelData[] = matchingRows.map(row => ({
         creationDate: row.columnA ? formatJiraDate(row.columnA.toString()) : undefined,
@@ -130,12 +138,14 @@ export const matchJiraExcelData = (htmlGroups: any[], jiraData: any[]): any[] =>
         fix: row.columnG?.toString() || undefined
       }));
       
+      console.log(`Dane Jira dla ${group.number2}:`, jiraMatches);
+      
       return {
         ...group,
         jiraData: jiraMatches
       };
     } else {
-      console.log(`❌ No Jira matches found for ${group.number2} (searching for: ${htmlHex})`);
+      console.log(`❌ Nie znaleziono dopasowań Jira dla ${group.number2} (szukano: ${htmlHex})`);
       return group;
     }
   });
