@@ -53,7 +53,7 @@ export const parseJiraExcelFile = async (file: File): Promise<any[]> => {
           const parsedRow = {
             rowIndex: index,
             columnA: row[0], // Creation date
-            columnB: row[1], // Link - DOKŁADNIE jak w pliku Excel - NIE ZMIENIAĆ!
+            columnB: row[1], // NUMER JIRA (np. P06831-25309) - TYLKO NUMER!
             columnC: row[2], // Column C
             columnD: row[3], // Description (hex number search)
             columnE: row[4], // Status
@@ -63,7 +63,7 @@ export const parseJiraExcelFile = async (file: File): Promise<any[]> => {
           };
           
           console.log(`Parsed Jira row ${index}:`, parsedRow);
-          console.log(`DOKŁADNY LINK Z EXCELA (columnB): "${row[1]}"`);
+          console.log(`NUMER JIRA Z EXCELA (columnB): "${row[1]}"`);
           console.log(`TYP columnB:`, typeof row[1]);
           
           return parsedRow;
@@ -171,17 +171,17 @@ export const matchJiraExcelData = (htmlGroups: any[], jiraData: any[]): any[] =>
     
     if (matchingRows.length > 0) {
       const jiraMatches = matchingRows.map(row => {
-        // ABSOLUTNIE NIE ZMIENIAJ LINKU! UŻYJ DOKŁADNIE JAK W EXCELU!
-        const originalLink = row.columnB;
-        
-        console.log(`ORYGINALNY LINK Z EXCELA (columnB): "${originalLink}"`);
-        console.log(`TYP LINKU: ${typeof originalLink}`);
-        
-        // NIE ROBIMY ŻADNYCH ZMIAN W LINKU - TYLKO SPRAWDZAMY CZY ISTNIEJE
+        // TWORZENIE LINKU: https://jira.kostal.com/browse/ + numer z pliku
+        const jiraNumber = row.columnB;
         let finalLink = undefined;
-        if (originalLink !== undefined && originalLink !== null && originalLink !== '') {
-          finalLink = String(originalLink); // TYLKO konwersja na string, BEZ ZMIAN!
-          console.log(`FINALNY LINK (bez zmian): "${finalLink}"`);
+        
+        console.log(`NUMER JIRA Z EXCELA (columnB): "${jiraNumber}"`);
+        console.log(`TYP NUMERU: ${typeof jiraNumber}`);
+        
+        if (jiraNumber !== undefined && jiraNumber !== null && jiraNumber !== '') {
+          const cleanNumber = String(jiraNumber).trim();
+          finalLink = `https://jira.kostal.com/browse/${cleanNumber}`;
+          console.log(`UTWORZONY LINK: "${finalLink}"`);
         }
         
         const jiraMatch = {
@@ -192,7 +192,7 @@ export const matchJiraExcelData = (htmlGroups: any[], jiraData: any[]): any[] =>
           fix: row.columnG?.toString() || undefined
         };
         
-        console.log(`KOŃCOWY JIRA MATCH Z ORYGINALNYM LINKIEM:`, jiraMatch);
+        console.log(`KOŃCOWY JIRA MATCH Z NOWYM LINKIEM:`, jiraMatch);
         return jiraMatch;
       });
       
@@ -253,4 +253,3 @@ const formatJiraDate = (dateValue: string | number): string => {
     return String(dateValue);
   }
 };
-
