@@ -26,7 +26,7 @@ export const parseJiraExcelFile = async (file: File): Promise<any[]> => {
         
         const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
         console.log(`Jira Excel total rows: ${jsonData.length}`);
-        console.log("Jira Excel raw data preview (first 10 rows):", jsonData.slice(0, 10));
+        console.log("Jira Excel ALL raw data:", jsonData);
         
         // Przetwarzaj WSZYSTKIE wiersze (pomijając tylko nagłówek)
         const result = jsonData.slice(1).map((row: any[], index) => {
@@ -44,7 +44,7 @@ export const parseJiraExcelFile = async (file: File): Promise<any[]> => {
         });
         
         console.log(`=== JIRA PARSING COMPLETE: ${result.length} rows ===`);
-        console.log("First 5 parsed Jira rows:", result.slice(0, 5));
+        console.log("ALL parsed Jira rows:", result);
         
         return resolve(result);
       } catch (error) {
@@ -63,6 +63,9 @@ export const matchJiraExcelData = (htmlGroups: any[], jiraData: any[]): any[] =>
   console.log(`HTML groups to match: ${htmlGroups.length}`);
   console.log(`Jira rows to search: ${jiraData.length}`);
   
+  console.log("COMPLETE HTML groups data:", htmlGroups);
+  console.log("COMPLETE Jira data:", jiraData);
+  
   console.log("HTML groups hex values:", htmlGroups.map(g => ({ 
     id: g.id, 
     number2: g.number2,
@@ -72,11 +75,14 @@ export const matchJiraExcelData = (htmlGroups: any[], jiraData: any[]): any[] =>
   const matchedResults = htmlGroups.map(group => {
     const htmlHex = group.number2.replace('$', '').toUpperCase();
     console.log(`\n--- SEARCHING FOR HEX "${htmlHex}" (from "${group.number2}") ---`);
+    console.log(`Group data:`, group);
     
     // Znajdź WSZYSTKIE pasujące wiersze
     const matchingRows = jiraData.filter((row, index) => {
       const jiraHexRaw = String(row.columnD || '').trim();
-      console.log(`  Checking Jira row ${index}: columnD = "${jiraHexRaw}" (type: ${typeof row.columnD})`);
+      console.log(`  Checking Jira row ${index}:`);
+      console.log(`    Full row data:`, row);
+      console.log(`    columnD raw value: "${jiraHexRaw}" (type: ${typeof row.columnD})`);
       
       if (!jiraHexRaw) {
         console.log(`    ❌ Empty columnD value`);
@@ -97,19 +103,31 @@ export const matchJiraExcelData = (htmlGroups: any[], jiraData: any[]): any[] =>
       console.log(`    Looking for: "${htmlHex}"`);
       
       const match = jiraHexVariations.some(variation => {
-        const isMatch = variation === htmlHex || variation.includes(htmlHex) || htmlHex.includes(variation);
-        console.log(`      "${variation}" matches "${htmlHex}" ? ${isMatch}`);
+        const exactMatch = variation === htmlHex;
+        const variationContainsHtml = variation.includes(htmlHex);
+        const htmlContainsVariation = htmlHex.includes(variation);
+        const isMatch = exactMatch || variationContainsHtml || htmlContainsVariation;
+        
+        console.log(`      "${variation}" vs "${htmlHex}"`);
+        console.log(`        exact match: ${exactMatch}`);
+        console.log(`        variation contains html: ${variationContainsHtml}`);
+        console.log(`        html contains variation: ${htmlContainsVariation}`);
+        console.log(`        final result: ${isMatch}`);
+        
         return isMatch;
       });
       
       if (match) {
         console.log(`    ✅ MATCH FOUND: HTML "${htmlHex}" matches Jira "${jiraHexRaw}"`);
+      } else {
+        console.log(`    ❌ NO MATCH: HTML "${htmlHex}" does not match Jira "${jiraHexRaw}"`);
       }
       
       return match;
     });
     
     console.log(`Found ${matchingRows.length} Jira matches for ${group.number2}`);
+    console.log(`Matching rows:`, matchingRows);
     
     if (matchingRows.length > 0) {
       const jiraMatches = matchingRows.map(row => {
@@ -120,7 +138,7 @@ export const matchJiraExcelData = (htmlGroups: any[], jiraData: any[]): any[] =>
           status: row.columnE?.toString() || undefined,
           fix: row.columnG?.toString() || undefined
         };
-        console.log(`Jira match data:`, jiraMatch);
+        console.log(`Created Jira match:`, jiraMatch);
         return jiraMatch;
       });
       
@@ -135,17 +153,14 @@ export const matchJiraExcelData = (htmlGroups: any[], jiraData: any[]): any[] =>
       return resultWithJira;
     } else {
       console.log(`❌ No Jira matches found for ${group.number2}`);
+      console.log(`Returning original group:`, group);
       return group;
     }
   });
   
   console.log("=== JIRA MATCHING COMPLETE ===");
-  console.log("Final matched results:", matchedResults.map(r => ({
-    id: r.id,
-    number2: r.number2,
-    hasJiraData: !!r.jiraData,
-    jiraDataLength: r.jiraData?.length || 0
-  })));
+  console.log("Final matched results:", matchedResults);
+  console.log("Results with Jira data count:", matchedResults.filter(r => r.jiraData && r.jiraData.length > 0).length);
   
   return matchedResults;
 };
