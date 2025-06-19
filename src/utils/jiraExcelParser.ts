@@ -4,6 +4,6 @@ import { parseJiraExcelFile } from './jiraExcelFileParser';
 import { matchJiraExcelData } from './jiraDataMatcher';
 
 // Re-export the main functions and types for backward compatibility
-export { JiraExcelData };
+export type { JiraExcelData };
 export { parseJiraExcelFile };
 export { matchJiraExcelData };
