@@ -47,6 +47,10 @@ export const ResultsList = ({ groups }: ResultsListProps) => {
     console.log(`  - jiraData length: ${group.jiraData?.length || 0}`);
     if (group.jiraData && group.jiraData.length > 0) {
       console.log(`  - jiraData content:`, group.jiraData);
+      // SPRAWDŹ DOKŁADNIE JAKIE LINKI OTRZYMUJEMY
+      group.jiraData.forEach((jira, jiraIndex) => {
+        console.log(`    Jira ${jiraIndex} link: "${jira.link}"`);
+      });
     }
   });
 
@@ -191,6 +195,7 @@ export const ResultsList = ({ groups }: ResultsListProps) => {
                         <div className="space-y-4">
                           {group.jiraData.map((jiraEntry, jiraIndex) => {
                             console.log(`Rendering Jira entry ${jiraIndex}:`, jiraEntry);
+                            console.log(`LINK DO RENDEROWANIA: "${jiraEntry.link}"`);
                             
                             return (
                               <div key={jiraIndex} className="bg-white p-3 rounded border border-blue-200">

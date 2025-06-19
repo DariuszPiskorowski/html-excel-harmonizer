@@ -1,5 +1,4 @@
 
-
 import * as XLSX from 'xlsx';
 
 export interface JiraExcelData {
@@ -54,7 +53,7 @@ export const parseJiraExcelFile = async (file: File): Promise<any[]> => {
           const parsedRow = {
             rowIndex: index,
             columnA: row[0], // Creation date
-            columnB: row[1], // Link - DOKŁADNIE jak w pliku Excel
+            columnB: row[1], // Link - DOKŁADNIE jak w pliku Excel - NIE ZMIENIAĆ!
             columnC: row[2], // Column C
             columnD: row[3], // Description (hex number search)
             columnE: row[4], // Status
@@ -64,8 +63,8 @@ export const parseJiraExcelFile = async (file: File): Promise<any[]> => {
           };
           
           console.log(`Parsed Jira row ${index}:`, parsedRow);
-          console.log(`EXACT LINK VALUE from Excel (columnB):`, row[1]);
-          console.log(`TYPEOF columnB:`, typeof row[1]);
+          console.log(`DOKŁADNY LINK Z EXCELA (columnB): "${row[1]}"`);
+          console.log(`TYP columnB:`, typeof row[1]);
           
           return parsedRow;
         });
@@ -172,21 +171,28 @@ export const matchJiraExcelData = (htmlGroups: any[], jiraData: any[]): any[] =>
     
     if (matchingRows.length > 0) {
       const jiraMatches = matchingRows.map(row => {
-        // UŻYJ DOKŁADNIE TEGO LINKU JAK W PLIKU EXCEL - BEZ ŻADNYCH ZMIAN!
-        const exactLink = row.columnB;
+        // ABSOLUTNIE NIE ZMIENIAJ LINKU! UŻYJ DOKŁADNIE JAK W EXCELU!
+        const originalLink = row.columnB;
         
-        console.log(`ORIGINAL EXCEL LINK (columnB):`, exactLink);
-        console.log(`LINK TYPE:`, typeof exactLink);
+        console.log(`ORYGINALNY LINK Z EXCELA (columnB): "${originalLink}"`);
+        console.log(`TYP LINKU: ${typeof originalLink}`);
+        
+        // NIE ROBIMY ŻADNYCH ZMIAN W LINKU - TYLKO SPRAWDZAMY CZY ISTNIEJE
+        let finalLink = undefined;
+        if (originalLink !== undefined && originalLink !== null && originalLink !== '') {
+          finalLink = String(originalLink); // TYLKO konwersja na string, BEZ ZMIAN!
+          console.log(`FINALNY LINK (bez zmian): "${finalLink}"`);
+        }
         
         const jiraMatch = {
           creationDate: row.columnA ? formatJiraDate(row.columnA.toString()) : undefined,
-          link: exactLink !== undefined && exactLink !== null && exactLink !== '' ? String(exactLink) : undefined,
+          link: finalLink,
           description: row.columnD?.toString() || undefined,
           status: row.columnE?.toString() || undefined,
           fix: row.columnG?.toString() || undefined
         };
         
-        console.log(`FINAL JIRA MATCH WITH EXACT LINK:`, jiraMatch);
+        console.log(`KOŃCOWY JIRA MATCH Z ORYGINALNYM LINKIEM:`, jiraMatch);
         return jiraMatch;
       });
       
