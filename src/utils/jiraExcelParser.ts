@@ -1,4 +1,5 @@
 
+
 import * as XLSX from 'xlsx';
 
 export interface JiraExcelData {
@@ -17,8 +18,14 @@ export const parseJiraExcelFile = async (file: File): Promise<any[]> => {
       try {
         console.log("=== JIRA EXCEL PARSING START ===");
         console.log("Reading Jira Excel file...");
+        console.log("File name:", file.name);
+        console.log("File size:", file.size);
+        console.log("File type:", file.type);
+        
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
         const workbook = XLSX.read(data, { type: 'array' });
+        
+        console.log("Workbook sheet names:", workbook.SheetNames);
         
         const firstSheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[firstSheetName];
@@ -27,7 +34,12 @@ export const parseJiraExcelFile = async (file: File): Promise<any[]> => {
         
         const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
         console.log(`Jira Excel total rows: ${jsonData.length}`);
-        console.log("Jira Excel ALL raw data:", jsonData);
+        console.log("Jira Excel FIRST 10 raw rows:", jsonData.slice(0, 10));
+        
+        // Sprawdź strukturę nagłówka
+        if (jsonData.length > 0) {
+          console.log("JIRA EXCEL HEADER ROW:", jsonData[0]);
+        }
         
         // Przetwarzaj WSZYSTKIE wiersze (pomijając tylko nagłówek)
         const result = jsonData.slice(1).map((row: any[], index) => {
@@ -35,9 +47,12 @@ export const parseJiraExcelFile = async (file: File): Promise<any[]> => {
             rowIndex: index,
             columnA: row[0], // Creation date
             columnB: row[1], // Link
+            columnC: row[2], // Column C
             columnD: row[3], // Description (hex number search)
             columnE: row[4], // Status
-            columnG: row[6]  // Fix
+            columnF: row[5], // Column F
+            columnG: row[6], // Fix
+            fullRow: row    // Całe row dla debugowania
           };
           
           console.log(`Parsed Jira row ${index}:`, parsedRow);
@@ -46,6 +61,11 @@ export const parseJiraExcelFile = async (file: File): Promise<any[]> => {
         
         console.log(`=== JIRA PARSING COMPLETE: ${result.length} rows ===`);
         console.log("ALL parsed Jira rows:", result);
+        
+        // Pokaż wszystkie unikalne wartości z kolumny D (hex values)
+        const columnDValues = result.map(row => row.columnD).filter(val => val !== undefined && val !== null && val !== '');
+        console.log("ALL COLUMN D VALUES (hex candidates):", columnDValues);
+        console.log("UNIQUE COLUMN D VALUES:", [...new Set(columnDValues)]);
         
         return resolve(result);
       } catch (error) {
@@ -66,6 +86,14 @@ export const matchJiraExcelData = (htmlGroups: any[], jiraData: any[]): any[] =>
   
   console.log("COMPLETE HTML groups data:", htmlGroups);
   console.log("COMPLETE Jira data:", jiraData);
+  
+  // Pokaż wszystkie hex values z HTML
+  const htmlHexValues = htmlGroups.map(g => g.number2.replace('$', '0x').toUpperCase());
+  console.log("HTML HEX VALUES TO FIND:", htmlHexValues);
+  
+  // Pokaż wszystkie hex values z Jira
+  const jiraHexValues = jiraData.map(row => String(row.columnD || '').trim()).filter(val => val);
+  console.log("JIRA HEX VALUES AVAILABLE:", jiraHexValues);
   
   console.log("HTML groups hex values:", htmlGroups.map(g => ({ 
     id: g.id, 
@@ -181,3 +209,4 @@ const formatJiraDate = (dateValue: string): string => {
     return dateValue;
   }
 };
+
