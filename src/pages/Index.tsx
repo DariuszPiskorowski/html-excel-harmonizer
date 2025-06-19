@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { FileUploader } from "@/components/FileUploader";
 import { ExcelUploader } from "@/components/ExcelUploader";
+import { JiraExcelUploader } from "@/components/JiraExcelUploader";
 import { ResultsList } from "@/components/ResultsList";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -25,6 +26,7 @@ interface ParsedGroup {
 const Index = () => {
   const [htmlFile, setHtmlFile] = useState<File | null>(null);
   const [excelFile, setExcelFile] = useState<File | null>(null);
+  const [jiraExcelFile, setJiraExcelFile] = useState<File | null>(null);
   const [parsedGroups, setParsedGroups] = useState<ParsedGroup[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
@@ -70,6 +72,11 @@ const Index = () => {
           });
         }
       }
+
+      // TODO: Add Jira Excel processing logic here when needed
+      if (jiraExcelFile) {
+        console.log("Jira Excel file selected, processing logic to be implemented...");
+      }
       
       setParsedGroups(finalGroups);
       console.log("=== Processing complete ===");
@@ -92,7 +99,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6">
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold">HTML Excel Harmonizer</h1>
           <p className="text-muted-foreground">
@@ -100,7 +107,7 @@ const Index = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">HTML File</h2>
             <FileUploader
@@ -116,6 +123,14 @@ const Index = () => {
             <ExcelUploader
               onFileSelect={setExcelFile}
               selectedFile={excelFile}
+            />
+          </div>
+
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">Jira Excel (optional)</h2>
+            <JiraExcelUploader
+              onFileSelect={setJiraExcelFile}
+              selectedFile={jiraExcelFile}
             />
           </div>
         </div>
