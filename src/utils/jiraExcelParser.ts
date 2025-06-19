@@ -1,3 +1,4 @@
+
 import * as XLSX from 'xlsx';
 
 export interface JiraExcelData {
@@ -69,12 +70,13 @@ export const matchJiraExcelData = (htmlGroups: any[], jiraData: any[]): any[] =>
   console.log("HTML groups hex values:", htmlGroups.map(g => ({ 
     id: g.id, 
     number2: g.number2,
-    number2Clean: g.number2.replace('$', '').toUpperCase()
+    number2Clean: g.number2.replace('$', '0x').toUpperCase()
   })));
   
   const matchedResults = htmlGroups.map(group => {
-    const htmlHex = group.number2.replace('$', '').toUpperCase();
-    console.log(`\n--- SEARCHING FOR HEX "${htmlHex}" (from "${group.number2}") ---`);
+    // Zamień prefix $ na 0x przed przeszukiwaniem
+    const htmlHex = group.number2.replace('$', '0x').toUpperCase();
+    console.log(`\n--- SEARCHING FOR HEX "${htmlHex}" (converted from "${group.number2}") ---`);
     console.log(`Group data:`, group);
     
     // Znajdź WSZYSTKIE pasujące wiersze
@@ -92,7 +94,7 @@ export const matchJiraExcelData = (htmlGroups: any[], jiraData: any[]): any[] =>
       // Test different hex matching variations
       const jiraHexVariations = [
         jiraHexRaw.toUpperCase(),
-        jiraHexRaw.replace('$', '').toUpperCase(),
+        jiraHexRaw.replace('$', '0x').toUpperCase(),
         jiraHexRaw.replace('0x', '').toUpperCase(),
         jiraHexRaw.replace('0X', '').toUpperCase(),
         jiraHexRaw.replace(/[^A-Fa-f0-9]/g, '').toUpperCase(),
