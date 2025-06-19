@@ -119,7 +119,7 @@ const Index = () => {
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Excel File (optional)</h2>
+            <h2 className="text-xl font-semibold">DTC Excel File</h2>
             <ExcelUploader
               onFileSelect={setExcelFile}
               selectedFile={excelFile}
