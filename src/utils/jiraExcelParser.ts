@@ -1,3 +1,4 @@
+
 import * as XLSX from 'xlsx';
 
 export interface JiraExcelData {
@@ -52,7 +53,7 @@ export const parseJiraExcelFile = async (file: File): Promise<any[]> => {
           const parsedRow = {
             rowIndex: index,
             columnA: row[0], // Creation date
-            columnB: row[1], // Link
+            columnB: row[1], // Link - DOKŁADNIE jak w pliku
             columnC: row[2], // Column C
             columnD: row[3], // Description (hex number search)
             columnE: row[4], // Status
@@ -62,6 +63,9 @@ export const parseJiraExcelFile = async (file: File): Promise<any[]> => {
           };
           
           console.log(`Parsed Jira row ${index}:`, parsedRow);
+          console.log(`RAW LINK VALUE from Excel (columnB):`, row[1]);
+          console.log(`TYPEOF columnB:`, typeof row[1]);
+          
           return parsedRow;
         });
         
@@ -167,14 +171,25 @@ export const matchJiraExcelData = (htmlGroups: any[], jiraData: any[]): any[] =>
     
     if (matchingRows.length > 0) {
       const jiraMatches = matchingRows.map(row => {
+        // NIE ZMIENIAJ LINKÓW! Użyj dokładnie tego co jest w columnB
+        const rawLink = row.columnB;
+        let cleanLink = null;
+        
+        if (rawLink !== undefined && rawLink !== null && rawLink !== '') {
+          // Tylko wyczyść podstawowe whitespace, ale NIE ZMIENIAJ zawartości linku
+          cleanLink = String(rawLink).trim();
+          console.log(`RAW LINK from Excel: "${rawLink}"`);
+          console.log(`CLEANED LINK (only trimmed): "${cleanLink}"`);
+        }
+        
         const jiraMatch = {
           creationDate: row.columnA ? formatJiraDate(row.columnA.toString()) : undefined,
-          link: row.columnB?.toString() || undefined,
+          link: cleanLink || undefined, // DOKŁADNIE jak w pliku, tylko trim()
           description: row.columnD?.toString() || undefined,
           status: row.columnE?.toString() || undefined,
           fix: row.columnG?.toString() || undefined
         };
-        console.log(`Created Jira match:`, jiraMatch);
+        console.log(`Created Jira match with ORIGINAL LINK:`, jiraMatch);
         return jiraMatch;
       });
       
