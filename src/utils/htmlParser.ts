@@ -14,12 +14,12 @@ export const parseHtmlContent = (htmlContent: string): ParsedGroup[] => {
     .replace(/\s+/g, ' ')
     .trim();
     
-  // Znajdź pozycję "Primary events (xx):" i zacznij parsowanie od tej pozycji
-  const primaryEventsMatch = textContent.match(/Primary\s+events\s*\(\d+\)\s*:/);
-  if (primaryEventsMatch) {
-    const startPosition = textContent.indexOf(primaryEventsMatch[0]) + primaryEventsMatch[0].length;
+  // Znajdź pozycję "Primary events (xx):" lub "Primary results (xx):" i zacznij parsowanie od tej pozycji
+  const primaryMatch = textContent.match(/Primary\s+(events|results)\s*\(\d+\)\s*:/);
+  if (primaryMatch) {
+    const startPosition = textContent.indexOf(primaryMatch[0]) + primaryMatch[0].length;
     textContent = textContent.substring(startPosition);
-    console.log("Started parsing after Primary events, new text length:", textContent.length);
+    console.log(`Started parsing after Primary ${primaryMatch[1]}, new text length:`, textContent.length);
   }
   
   console.log("Processed text length:", textContent.length);
