@@ -1,6 +1,6 @@
 
 import { ParsedGroup } from "@/types/ParsedGroup";
-import { datePatterns, odometerPatterns } from "./patterns";
+import { datePatterns, odometerPatterns, dtcPattern, pCodePattern } from "./patterns";
 
 export const extractAdditionalInfo = (groupContent: string, group: ParsedGroup): void => {
   // Priority
@@ -49,8 +49,8 @@ export const parseDtcMaskGroups = (textContent: string): ParsedGroup[] => {
   const groups: ParsedGroup[] = [];
   let groupCounter = 0;
   
-  // Główny wzorzec DTC_MASK - używamy globalnego flag i reset regex
-  const dtcPattern = /DTC_MASK\s+\$([A-Fa-f0-9]+)\/([A-Fa-f0-9]+)\s+([A-Z0-9]+)\s+\(\$([A-Fa-f0-9]+)\s*\/\s*(\d+)\)/g;
+  // Główny wzorzec DTC_MASK - używamy z patterns.ts 
+  console.log("Using DTC pattern:", dtcPattern.source);
   
   // Znajdź wszystkie dopasowania DTC_MASK
   const matches = Array.from(textContent.matchAll(dtcPattern));
@@ -118,8 +118,8 @@ export const parsePCodeGroups = (textContent: string): ParsedGroup[] => {
   
   console.log("No DTC_MASK groups found, trying alternative P-code format...");
   
-  // Szukamy wzorców P-kodów bezpośrednio
-  const pCodePattern = /([P][A-Z0-9]{6})\s*\(\$([A-Fa-f0-9]+)\s*\/\s*(\d+)\)/g;
+  // Szukamy wzorców P-kodów bezpośrednio - używamy z patterns.ts
+  console.log("Using P-code pattern:", pCodePattern.source);
   const pMatches = Array.from(textContent.matchAll(pCodePattern));
   
   console.log(`Found ${pMatches.length} P-code patterns`);

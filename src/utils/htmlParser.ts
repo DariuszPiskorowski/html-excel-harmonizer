@@ -3,7 +3,8 @@ import { ParsedGroup } from "@/types/ParsedGroup";
 import { parseDtcMaskGroups, parsePCodeGroups } from "./dtcParser";
 
 export const parseHtmlContent = (htmlContent: string): ParsedGroup[] => {
-  console.log("Starting HTML parsing...");
+  console.log("=== STARTING HTML PARSING ===");
+  console.log("Original HTML length:", htmlContent.length);
   
   // Zamień &nbsp; na spacje i usuń HTML tagi
   const textContent = htmlContent
@@ -12,7 +13,12 @@ export const parseHtmlContent = (htmlContent: string): ParsedGroup[] => {
     .replace(/\s+/g, ' ')
     .trim();
   
+  console.log("Processed text length:", textContent.length);
   console.log("Text content preview:", textContent.substring(0, 2000));
+  
+  // Sprawdź ile potencjalnych DTC_MASK występuje w tekście
+  const dtcOccurrences = (textContent.match(/DTC_MASK/g) || []).length;
+  console.log(`TOTAL DTC_MASK occurrences in text: ${dtcOccurrences}`);
   
   // Próbuj parsować DTC_MASK grupy
   let groups = parseDtcMaskGroups(textContent);
