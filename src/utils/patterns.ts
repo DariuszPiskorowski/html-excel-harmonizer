@@ -1,4 +1,3 @@
-
 export const datePatterns = [
   // Główny wzorzec dla formatu "Date [czas] - [data]"
   /Date\s+([0-9]{1,2}:[0-9]{2}:[0-9]{2}\s*-\s*[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{4})/i,
@@ -19,6 +18,7 @@ export const odometerPatterns = [
   /Odometer[:\s]*([0-9]+\s*(?:km|miles?))/i
 ];
 
-export const dtcPattern = /DTC_MASK\s*\$\s*([A-Fa-f0-9]+)\s*\/\s*([A-Fa-f0-9]+)\s+([A-Z0-9]+)\s+\(\s*\$\s*([A-Fa-f0-9]+)\s*\/\s*(\d+)\s*\)/g;
+// Bardziej elastyczny wzorzec DTC - obsługuje różne formaty separatorów i spacji
+export const dtcPattern = /DTC_MASK\s*[:\$]*\s*([A-Fa-f0-9]+)\s*[\/\\]\s*([A-Fa-f0-9]+)\s+([A-Z0-9]+)\s*\(\s*[\$]*\s*([A-Fa-f0-9]+)\s*[\/\\]\s*(\d+)\s*\)/g;
 
 export const pCodePattern = /([P][A-Z0-9]{6})\s*\(\$([A-Fa-f0-9]+)\s*\/\s*(\d+)\)/g;
