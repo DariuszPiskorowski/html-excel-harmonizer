@@ -15,24 +15,28 @@ export const parseHtmlContent = (htmlContent: string): ParsedGroup[] => {
   
   console.log("Processed text length:", textContent.length);
   
-  // SZCZEGÓŁOWE DEBUGOWANIE - szukamy konkretnych błędów
-  console.log("=== SEARCHING FOR SPECIFIC MISSING ERRORS ===");
+  // SZCZEGÓŁOWE DEBUGOWANIE - dlaczego regex nie łapie wszystkich DTC_MASK
+  console.log("=== ANALYZING DTC_MASK PARSING ISSUE ===");
   
-  // Szukamy konkretnych hexNumber kodów (number2)
-  console.log("=== SEARCHING FOR SPECIFIC HEX NUMBERS (number2) ===");
+  // Sprawdź wszystkie pozycje DTC_MASK w tekście
+  const dtcPositions = [];
+  let searchStart = 0;
+  while (true) {
+    const pos = textContent.indexOf("DTC_MASK", searchStart);
+    if (pos === -1) break;
+    dtcPositions.push(pos);
+    searchStart = pos + 1;
+  }
   
-  const searchHexNumbers = ["E10300", "102C03", "$E10300", "$102C03"];
-  searchHexNumbers.forEach(hexNum => {
-    const searchIndex = textContent.indexOf(hexNum);
-    if (searchIndex !== -1) {
-      const contextStart = Math.max(0, searchIndex - 150);
-      const contextEnd = Math.min(textContent.length, searchIndex + 300);
-      const context = textContent.substring(contextStart, contextEnd);
-      console.log(`FOUND ${hexNum} at position:`, searchIndex);
-      console.log(`${hexNum} context:`, context);
-    } else {
-      console.log(`${hexNum} NOT FOUND in text content`);
-    }
+  console.log(`All DTC_MASK positions:`, dtcPositions);
+  console.log(`Total found: ${dtcPositions.length}`);
+  
+  // Pokaż kontekst dla każdego DTC_MASK
+  dtcPositions.forEach((pos, index) => {
+    const contextStart = Math.max(0, pos - 50);
+    const contextEnd = Math.min(textContent.length, pos + 150);
+    const context = textContent.substring(contextStart, contextEnd);
+    console.log(`DTC_MASK ${index + 1} context:`, context);
   });
   
   // Sprawdź ile potencjalnych DTC_MASK występuje w tekście
