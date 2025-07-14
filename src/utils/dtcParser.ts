@@ -50,19 +50,17 @@ export const parseDtcMaskGroups = (textContent: string): ParsedGroup[] => {
   
   console.log("=== STARTING SIMPLE DTC_MASK PARSING ===");
   
-  // Usuń wszystkie wystąpienia "Information (xx):" z tekstu
-  let cleanedText = textContent.replace(/\+?\s*Information\s*\(\d+\)\s*:\s*/g, ' ');
-  console.log("Removed Information patterns from text");
+  // NIE usuwamy Information z całego tekstu - zostawiamy je jako separatory
   
   // Znajdź pozycję startu - "Primary results (xx):" lub "Primary events (xx):"
-  const startMatch = cleanedText.match(/(Primary\s+(?:results|events)\s*\(\d+\)\s*:)/);
+  const startMatch = textContent.match(/(Primary\s+(?:results|events)\s*\(\d+\)\s*:)/);
   if (!startMatch) {
     console.log("No Primary results/events found!");
     return groups;
   }
   
-  const startPos = cleanedText.indexOf(startMatch[0]) + startMatch[0].length;
-  let workingText = cleanedText.substring(startPos);
+  const startPos = textContent.indexOf(startMatch[0]) + startMatch[0].length;
+  let workingText = textContent.substring(startPos);
   console.log(`Starting parsing after ${startMatch[1]}, remaining text length: ${workingText.length}`);
   
   // Teraz parsujemy grupy - każda kończy się na DTC_MASK i zaczyna kolejna
@@ -105,8 +103,11 @@ export const parseDtcMaskGroups = (textContent: string): ParsedGroup[] => {
 
 // Pomocnicza funkcja do parsowania zawartości pojedynczej grupy
 const parseGroupContent = (groupText: string, groupNumber: number): ParsedGroup | null => {
+  // Usuń linie z "Information (xx):" z tej konkretnej grupy przed parsowaniem
+  const cleanGroupText = groupText.replace(/\+?\s*Information\s*\(\d+\)\s*:\s*/g, ' ').trim();
+  
   // Szukaj wzorca DTC na początku grupy
-  const dtcMatch = groupText.match(/^\s*([A-Z0-9]+)\s*\(\s*\$?\s*([A-Fa-f0-9]+)\s*[\/\\]\s*(\d+)\s*\)/);
+  const dtcMatch = cleanGroupText.match(/^\s*([A-Z0-9]+)\s*\(\s*\$?\s*([A-Fa-f0-9]+)\s*[\/\\]\s*(\d+)\s*\)/);
   
   if (!dtcMatch) {
     console.log(`No DTC pattern found in group ${groupNumber}`);
@@ -116,9 +117,9 @@ const parseGroupContent = (groupText: string, groupNumber: number): ParsedGroup 
   const [, dtcCode, hexNumber, decNumber] = dtcMatch;
   console.log(`Found DTC: ${dtcCode} (${hexNumber})`);
   
-  // Szukamy opisu
+  // Szukamy opisu w oczyszczonym tekście
   let description = "Not Available";
-  const descriptionMatch = groupText.match(/DTC text:\s*([^&\s][^&]*?)(?=\s+DTC|$)/);
+  const descriptionMatch = cleanGroupText.match(/DTC text:\s*([^&\s][^&]*?)(?=\s+DTC|$)/);
   if (descriptionMatch) {
     description = descriptionMatch[1].trim();
   }
