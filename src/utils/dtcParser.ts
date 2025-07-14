@@ -65,6 +65,11 @@ export const parseDtcMaskGroups = (textContent: string): ParsedGroup[] => {
   
   // Teraz parsujemy grupy - każda kończy się na DTC_MASK i zaczyna kolejna
   let currentPos = 0;
+  console.log(`Starting group parsing loop, workingText length: ${workingText.length}`);
+  console.log(`First 200 chars of workingText: "${workingText.substring(0, 200)}"`);
+  console.log(`Looking for Information patterns in text...`);
+  const infoMatches = workingText.match(/Information\s*\(\d+\)\s*:/g);
+  console.log(`Found ${infoMatches ? infoMatches.length : 0} Information patterns in remaining text`);
   
   while (currentPos < workingText.length) {
     // Znajdź następny DTC_MASK
