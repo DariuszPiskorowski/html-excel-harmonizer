@@ -56,8 +56,8 @@ export const parseDtcMaskGroups = (textContent: string): ParsedGroup[] => {
   console.log(`TOTAL DTC_MASK occurrences in text: ${dtcMaskOccurrences}`);
   console.log(`Expected groups should be: ${dtcMaskOccurrences}`);
   
-  // Podziel tekst używając DTC_MASK jako separatora
-  const groupSections = textContent.split(/DTC_MASK[^P]*?(?=P|$)/);
+  // Podziel tekst używając DTC_MASK jako separatora - prosty split
+  const groupSections = textContent.split('DTC_MASK');
   console.log(`Found ${groupSections.length} potential groups after splitting by DTC_MASK`);
   
   // Sprawdź długość każdej sekcji
