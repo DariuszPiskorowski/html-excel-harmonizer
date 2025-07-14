@@ -6,14 +6,15 @@ export const parseHtmlContent = (htmlContent: string): ParsedGroup[] => {
   console.log("=== STARTING HTML PARSING ===");
   console.log("Original HTML length:", htmlContent.length);
   
-  // Zamień &nbsp; na spacje, usuń HTML tagi - NIE usuwaj "Information (x):" bo może psuje parsing
+  // Zamień &nbsp; na spacje, usuń HTML tagi i usuń tekst "Information (x):"
   let textContent = htmlContent
     .replace(/&nbsp;/g, ' ')
     .replace(/<[^>]*>/g, ' ')
+    .replace(/\+\s*Information\s*\(\d+\)\s*:\s*/g, ' ') // Usuń "Information (x):"
     .replace(/\s+/g, ' ')
     .trim();
     
-  console.log("Text content after basic cleaning (keeping Information):", textContent.substring(0, 500));
+  console.log("Text content after cleaning (removed Information):", textContent.substring(0, 500));
     
   // Znajdź pozycję "Primary events (xx):" lub "Primary results (xx):" i zacznij parsowanie od tej pozycji
   const primaryMatch = textContent.match(/Primary\s+(events|results)\s*\(\d+\)\s*:/);
