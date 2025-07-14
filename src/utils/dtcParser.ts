@@ -143,8 +143,11 @@ export const parseDtcMaskGroups = (textContent: string): ParsedGroup[] => {
       break;
     }
     
-    // Wyciągnij tekst grupy (do DTC_MASK + 8 znaków)
-    const groupEndPos = dtcMaskPos + 8;
+    // Znajdź następny DTC_MASK żeby określić koniec grupy
+    const nextDtcMaskPos = workingText.indexOf('DTC_MASK', dtcMaskPos + 1);
+    const groupEndPos = nextDtcMaskPos === -1 ? workingText.length : nextDtcMaskPos;
+    
+    // Wyciągnij tekst grupy (od currentPos do następnego DTC_MASK)
     const groupText = workingText.substring(currentPos, groupEndPos).trim();
     
     console.log(`Processing group ${groupCounter + 1}, length: ${groupText.length}`);
@@ -155,7 +158,7 @@ export const parseDtcMaskGroups = (textContent: string): ParsedGroup[] => {
       if (group) groups.push(group);
     }
     
-    currentPos = groupEndPos;
+    currentPos = dtcMaskPos + 8; // Przeskocz do następnej pozycji po aktualnym DTC_MASK
   }
   
   console.log(`=== FOUND ${groups.length} GROUPS TOTAL ===`);
