@@ -18,29 +18,22 @@ export const parseHtmlContent = (htmlContent: string): ParsedGroup[] => {
   // SZCZEGÓŁOWE DEBUGOWANIE - szukamy konkretnych błędów
   console.log("=== SEARCHING FOR SPECIFIC MISSING ERRORS ===");
   
-  // Szukamy E10300 z pozycji 1
-  const e10300Search = textContent.indexOf("E10300");
-  if (e10300Search !== -1) {
-    const contextStart = Math.max(0, e10300Search - 100);
-    const contextEnd = Math.min(textContent.length, e10300Search + 200);
-    const context = textContent.substring(contextStart, contextEnd);
-    console.log("FOUND E10300 at position:", e10300Search);
-    console.log("E10300 context:", context);
-  } else {
-    console.log("E10300 NOT FOUND in text content");
-  }
+  // Szukamy konkretnych hexNumber kodów (number2)
+  console.log("=== SEARCHING FOR SPECIFIC HEX NUMBERS (number2) ===");
   
-  // Szukamy 102C03 z pozycji 16
-  const c102c03Search = textContent.indexOf("102C03");
-  if (c102c03Search !== -1) {
-    const contextStart = Math.max(0, c102c03Search - 100);
-    const contextEnd = Math.min(textContent.length, c102c03Search + 200);
-    const context = textContent.substring(contextStart, contextEnd);
-    console.log("FOUND 102C03 at position:", c102c03Search);
-    console.log("102C03 context:", context);
-  } else {
-    console.log("102C03 NOT FOUND in text content");
-  }
+  const searchHexNumbers = ["E10300", "102C03", "$E10300", "$102C03"];
+  searchHexNumbers.forEach(hexNum => {
+    const searchIndex = textContent.indexOf(hexNum);
+    if (searchIndex !== -1) {
+      const contextStart = Math.max(0, searchIndex - 150);
+      const contextEnd = Math.min(textContent.length, searchIndex + 300);
+      const context = textContent.substring(contextStart, contextEnd);
+      console.log(`FOUND ${hexNum} at position:`, searchIndex);
+      console.log(`${hexNum} context:`, context);
+    } else {
+      console.log(`${hexNum} NOT FOUND in text content`);
+    }
+  });
   
   // Sprawdź ile potencjalnych DTC_MASK występuje w tekście
   const dtcOccurrences = (textContent.match(/DTC_MASK/g) || []).length;
