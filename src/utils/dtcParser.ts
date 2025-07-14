@@ -50,16 +50,44 @@ export const parseDtcMaskGroups = (textContent: string): ParsedGroup[] => {
   
   console.log("=== STARTING SIMPLE PARSING ===");
   
-  // Znajdź pozycję startu - "Primary results (xx):" lub "Primary events (xx):"
-  const startMatch = textContent.match(/(Primary\s+(?:results|events)\s*\(\d+\)\s*:)/);
-  if (!startMatch) {
-    console.log("No Primary results/events found!");
-    return groups;
+  // Znajdź pozycję startu - różne możliwe wzorce
+  const startPatterns = [
+    /(Primary\s+(?:results|events)\s*\(\d+\)\s*:)/i,
+    /(Results\s*\(\d+\)\s*:)/i,
+    /(Events\s*\(\d+\)\s*:)/i,
+    /(Primary.*?:)/i
+  ];
+  
+  let startMatch = null;
+  let startPattern = '';
+  
+  for (const pattern of startPatterns) {
+    startMatch = textContent.match(pattern);
+    if (startMatch) {
+      startPattern = startMatch[1];
+      break;
+    }
   }
   
-  const startPos = textContent.indexOf(startMatch[0]) + startMatch[0].length;
-  let workingText = textContent.substring(startPos);
-  console.log(`Starting parsing after ${startMatch[1]}, text length: ${workingText.length}`);
+  let workingText: string;
+  
+  if (!startMatch) {
+    console.log("No Primary results/events found! Searching for any section with DTC_MASK...");
+    // Jeśli nie ma sekcji Primary, szukaj pierwszego DTC_MASK
+    const firstDtcPos = textContent.indexOf('DTC_MASK');
+    if (firstDtcPos === -1) {
+      console.log("No DTC_MASK found at all!");
+      return groups;
+    }
+    // Zacznij 100 znaków przed pierwszym DTC_MASK
+    const startPos = Math.max(0, firstDtcPos - 100);
+    workingText = textContent.substring(startPos);
+    console.log(`Starting from first DTC_MASK position, text length: ${workingText.length}`);
+  } else {
+    const startPos = textContent.indexOf(startMatch[0]) + startMatch[0].length;
+    workingText = textContent.substring(startPos);
+    console.log(`Starting parsing after ${startPattern}, text length: ${workingText.length}`);
+  }
   
   // USUŃ wszystkie "Information (xx):" z tekstu - zastąp spacją
   const originalLength = workingText.length;
