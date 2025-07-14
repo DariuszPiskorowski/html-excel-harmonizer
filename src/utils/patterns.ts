@@ -19,6 +19,6 @@ export const odometerPatterns = [
   /Odometer[:\s]*([0-9]+\s*(?:km|miles?))/i
 ];
 
-export const dtcPattern = /DTC_MASK\s+\$([A-Fa-f0-9]+)\/([A-Fa-f0-9]+)\s+([A-Z0-9]+)\s+\(\$([A-Fa-f0-9]+)\s*\/\s*(\d+)\)/g;
+export const dtcPattern = /DTC_MASK\s*\$\s*([A-Fa-f0-9]+)\s*\/\s*([A-Fa-f0-9]+)\s+([A-Z0-9]+)\s+\(\s*\$\s*([A-Fa-f0-9]+)\s*\/\s*(\d+)\s*\)/g;
 
 export const pCodePattern = /([P][A-Z0-9]{6})\s*\(\$([A-Fa-f0-9]+)\s*\/\s*(\d+)\)/g;
