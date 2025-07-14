@@ -18,7 +18,7 @@ export const odometerPatterns = [
   /Odometer[:\s]*([0-9]+\s*(?:km|miles?))/i
 ];
 
-// Wzorzec DTC obsługujący różne formaty hex kodów (z $ i bez $)
-export const dtcPattern = /DTC_MASK\s*[:\$]*\s*([A-Fa-f0-9]+)\s*[\/\\]\s*([A-Fa-f0-9]+)\s+([A-Z0-9]+)\s*\(\s*\$?\s*([A-Fa-f0-9]+)\s*[\/\\]\s*(\d+)\s*\)/g;
+// Wzorzec DTC obsługujący różne formaty hex kodów oraz dodatkowe informacje
+export const dtcPattern = /DTC_MASK\s*[:\$]*\s*([A-Fa-f0-9]+)\s*[\/\\]\s*([A-Fa-f0-9]+)\s*(?:\+\s*Information\s*\([^)]+\))?\s*:\s*([A-Z0-9]+)\s*\(\s*\$?\s*([A-Fa-f0-9]+)\s*[\/\\]\s*(\d+)\s*\)/g;
 
 export const pCodePattern = /([P][A-Z0-9]{6})\s*\(\$([A-Fa-f0-9]+)\s*\/\s*(\d+)\)/g;
