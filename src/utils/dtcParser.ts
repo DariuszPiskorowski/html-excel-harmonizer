@@ -50,12 +50,52 @@ export const parseDtcMaskGroups = (textContent: string): ParsedGroup[] => {
   
   console.log("=== STARTING SIMPLE PARSING ===");
   
-  // Tekst przychodzi już po usunięciu sekcji Primary przez htmlParser
-  console.log("Text already cleaned by htmlParser, starting direct parsing");
-  console.log("Input text length:", textContent.length);
-  console.log("Text preview:", textContent.substring(0, 200));
+  // Znajdź pozycję startu - różne możliwe wzorce
+  console.log("Searching for Primary section...");
+  console.log("Text preview (first 1000 chars):", textContent.substring(0, 1000));
   
-  let workingText = textContent;
+  const startPatterns = [
+    /(Primary\s+(?:results|events)\s*\(\d+\)\s*:)/i,
+    /(Results\s*\(\d+\)\s*:)/i,
+    /(Events\s*\(\d+\)\s*:)/i,
+    /(Primary.*?:)/i,
+    // Dodajmy jeszcze więcej wzorców
+    /(Primary.*?\(\d+\))/i,
+    /Primary/i
+  ];
+  
+  let startMatch = null;
+  let startPattern = '';
+  
+  for (let i = 0; i < startPatterns.length; i++) {
+    const pattern = startPatterns[i];
+    startMatch = textContent.match(pattern);
+    console.log(`Pattern ${i + 1} (${pattern.source}):`, startMatch ? `FOUND: "${startMatch[1]}"` : "NOT FOUND");
+    if (startMatch) {
+      startPattern = startMatch[1];
+      break;
+    }
+  }
+  
+  let workingText: string;
+  
+  if (!startMatch) {
+    console.log("No Primary results/events found! Searching for any section with DTC_MASK...");
+    // Jeśli nie ma sekcji Primary, szukaj pierwszego DTC_MASK
+    const firstDtcPos = textContent.indexOf('DTC_MASK');
+    if (firstDtcPos === -1) {
+      console.log("No DTC_MASK found at all!");
+      return groups;
+    }
+    // Zacznij 100 znaków przed pierwszym DTC_MASK
+    const startPos = Math.max(0, firstDtcPos - 100);
+    workingText = textContent.substring(startPos);
+    console.log(`Starting from first DTC_MASK position, text length: ${workingText.length}`);
+  } else {
+    const startPos = textContent.indexOf(startMatch[0]) + startMatch[0].length;
+    workingText = textContent.substring(startPos);
+    console.log(`Starting parsing after ${startPattern}, text length: ${workingText.length}`);
+  }
   
   // USUŃ wszystkie "Information (xx):" z tekstu - zastąp spacją
   const originalLength = workingText.length;
