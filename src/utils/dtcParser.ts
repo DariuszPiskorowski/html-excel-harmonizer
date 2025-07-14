@@ -68,13 +68,19 @@ export const parseDtcMaskGroups = (textContent: string): ParsedGroup[] => {
   // Parsuj każdą sekcję jako osobną grupę
   groupSections.forEach((section, index) => {
     const trimmedSection = section.trim();
-    if (trimmedSection.length < 10) return; // Pomiń zbyt krótkie sekcje
+    if (trimmedSection.length < 10) {
+      console.log(`Section ${index} too short, skipping`);
+      return; // Pomiń zbyt krótkie sekcje
+    }
     
     console.log(`=== Processing group section ${index + 1} ===`);
     console.log(`Section preview:`, trimmedSection.substring(0, 100));
+    console.log(`Section first 20 chars for regex test:`, trimmedSection.substring(0, 20));
     
     // Szukaj wzorca DTC na początku sekcji - grupy mogą zaczynać się od różnych liter i cyfr
     const dtcMatch = trimmedSection.match(/^([A-Z0-9]+)\s*\(\s*\$?\s*([A-Fa-f0-9]+)\s*[\/\\]\s*(\d+)\s*\)/);
+    console.log(`DTC match result for section ${index}:`, dtcMatch ? `FOUND: ${dtcMatch[1]}` : "NOT FOUND");
+    
     if (dtcMatch) {
       groupCounter++;
       const [, dtcCode, hexNumber, decNumber] = dtcMatch;
