@@ -48,72 +48,93 @@ export const parseDtcMaskGroups = (textContent: string): ParsedGroup[] => {
   const groups: ParsedGroup[] = [];
   let groupCounter = 0;
   
-  console.log("=== STARTING DTC_MASK PARSING ===");
-  console.log("DTC_MASK is at the END of each group, using as separator");
+  console.log("=== STARTING SIMPLE DTC_MASK PARSING ===");
   
-  // Sprawdź ile razy występuje DTC_MASK w tekście
-  const dtcMaskOccurrences = (textContent.match(/DTC_MASK/g) || []).length;
-  console.log(`TOTAL DTC_MASK occurrences in text: ${dtcMaskOccurrences}`);
-  console.log(`Expected groups should be: ${dtcMaskOccurrences}`);
+  // Usuń wszystkie wystąpienia "Information (xx):" z tekstu
+  let cleanedText = textContent.replace(/\+?\s*Information\s*\(\d+\)\s*:\s*/g, ' ');
+  console.log("Removed Information patterns from text");
   
-  // Podziel tekst używając DTC_MASK jako separatora - prosty split
-  const groupSections = textContent.split('DTC_MASK');
-  console.log(`Found ${groupSections.length} potential groups after splitting by DTC_MASK`);
+  // Znajdź pozycję startu - "Primary results (xx):" lub "Primary events (xx):"
+  const startMatch = cleanedText.match(/(Primary\s+(?:results|events)\s*\(\d+\)\s*:)/);
+  if (!startMatch) {
+    console.log("No Primary results/events found!");
+    return groups;
+  }
   
-  // Pierwsza sekcja to grupa przed pierwszym DTC_MASK - też ją parsujemy!
-  // Reszta sekcji to treść po każdym DTC_MASK
+  const startPos = cleanedText.indexOf(startMatch[0]) + startMatch[0].length;
+  let workingText = cleanedText.substring(startPos);
+  console.log(`Starting parsing after ${startMatch[1]}, remaining text length: ${workingText.length}`);
   
-  // Sprawdź długość każdej sekcji
-  groupSections.forEach((section, index) => {
-    console.log(`Section ${index}: length=${section.length}, starts with: "${section.substring(0, 50)}"`);
-  });
+  // Teraz parsujemy grupy - każda kończy się na DTC_MASK i zaczyna kolejna
+  let currentPos = 0;
   
-  // Parsuj każdą sekcję jako osobną grupę
-  groupSections.forEach((section, index) => {
-    const trimmedSection = section.trim();
-    if (trimmedSection.length < 10) {
-      console.log(`Section ${index} too short, skipping`);
-      return; // Pomiń zbyt krótkie sekcje
-    }
+  while (currentPos < workingText.length) {
+    // Znajdź następny DTC_MASK
+    const dtcMaskPos = workingText.indexOf('DTC_MASK', currentPos);
     
-    console.log(`=== Processing group section ${index + 1} ===`);
-    console.log(`Section preview:`, trimmedSection.substring(0, 100));
-    console.log(`Section first 20 chars for regex test:`, trimmedSection.substring(0, 20));
-    
-    // Szukaj wzorca DTC na początku sekcji - grupy mogą zaczynać się od różnych liter i cyfr
-    const dtcMatch = trimmedSection.match(/^([A-Z0-9]+)\s*\(\s*\$?\s*([A-Fa-f0-9]+)\s*[\/\\]\s*(\d+)\s*\)/);
-    console.log(`DTC match result for section ${index}:`, dtcMatch ? `FOUND: ${dtcMatch[1]}` : "NOT FOUND");
-    
-    if (dtcMatch) {
-      groupCounter++;
-      const [, dtcCode, hexNumber, decNumber] = dtcMatch;
-      
-      console.log(`Found group ${groupCounter}: ${dtcCode} (${hexNumber})`);
-      
-      // Szukamy opisu w treści grupy
-      let description = "Not Available";
-      const descriptionMatch = trimmedSection.match(/DTC text:\s*([^&\s][^&]*?)(?=\s+DTC|$)/);
-      if (descriptionMatch) {
-        description = descriptionMatch[1].trim();
+    if (dtcMaskPos === -1) {
+      // Ostatnia grupa - do końca tekstu
+      const lastGroupText = workingText.substring(currentPos).trim();
+      if (lastGroupText.length > 10) {
+        console.log(`Processing final group, length: ${lastGroupText.length}`);
+        const group = parseGroupContent(lastGroupText, ++groupCounter);
+        if (group) groups.push(group);
       }
-      
-      const group: ParsedGroup = {
-        id: `group-${groupCounter}`,
-        firstLine: `${dtcCode} (${hexNumber}) ${description}`,
-        number1: dtcCode,
-        number2: hexNumber,
-        description: description
-      };
-      
-      extractAdditionalInfo(trimmedSection, group);
-      console.log(`Group ${groupCounter} firstLine: "${group.firstLine}"`);
-      groups.push(group);
-    } else {
-      console.log(`No DTC pattern found in section ${index + 1}`);
+      break;
     }
-  });
+    
+    // Wyciągnij tekst grupy (od current pos do DTC_MASK + długość DTC_MASK)
+    const groupEndPos = dtcMaskPos + 8; // "DTC_MASK".length = 8
+    const groupText = workingText.substring(currentPos, groupEndPos).trim();
+    
+    console.log(`Processing group ${groupCounter + 1}, text length: ${groupText.length}`);
+    console.log(`Group starts with: "${groupText.substring(0, 50)}"`);
+    
+    if (groupText.length > 10) {
+      const group = parseGroupContent(groupText, ++groupCounter);
+      if (group) groups.push(group);
+    }
+    
+    // Przejdź do następnej pozycji (za DTC_MASK)
+    currentPos = groupEndPos;
+  }
   
+  console.log(`Found ${groups.length} groups total`);
   return groups;
+};
+
+// Pomocnicza funkcja do parsowania zawartości pojedynczej grupy
+const parseGroupContent = (groupText: string, groupNumber: number): ParsedGroup | null => {
+  // Szukaj wzorca DTC na początku grupy
+  const dtcMatch = groupText.match(/^\s*([A-Z0-9]+)\s*\(\s*\$?\s*([A-Fa-f0-9]+)\s*[\/\\]\s*(\d+)\s*\)/);
+  
+  if (!dtcMatch) {
+    console.log(`No DTC pattern found in group ${groupNumber}`);
+    return null;
+  }
+  
+  const [, dtcCode, hexNumber, decNumber] = dtcMatch;
+  console.log(`Found DTC: ${dtcCode} (${hexNumber})`);
+  
+  // Szukamy opisu
+  let description = "Not Available";
+  const descriptionMatch = groupText.match(/DTC text:\s*([^&\s][^&]*?)(?=\s+DTC|$)/);
+  if (descriptionMatch) {
+    description = descriptionMatch[1].trim();
+  }
+  
+  const group: ParsedGroup = {
+    id: `group-${groupNumber}`,
+    firstLine: `${dtcCode} (${hexNumber}) ${description}`,
+    number1: dtcCode,
+    number2: hexNumber,
+    description: description
+  };
+  
+  extractAdditionalInfo(groupText, group);
+  console.log(`Created group: ${group.firstLine}`);
+  
+  return group;
 };
 
 // Nowa funkcja do parsowania alternatywnych formatów DTC
