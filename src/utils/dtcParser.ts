@@ -63,6 +63,16 @@ export const parseDtcMaskGroups = (textContent: string): ParsedGroup[] => {
   
   // USUŃ wszystkie "Information (xx):" z tekstu - zastąp spacją
   const originalLength = workingText.length;
+  
+  // Najpierw znajdź wszystkie wzorce Information
+  const informationMatches = workingText.match(/\+?\s*Information\s*\(\d+\)\s*:\s*/g);
+  console.log(`Found Information patterns:`, informationMatches);
+  console.log(`Number of Information patterns found: ${informationMatches ? informationMatches.length : 0}`);
+  
+  // Sprawdź także czy są jakieś inne warianty
+  const allInfoPatterns = workingText.match(/Information[^:]*:/gi);
+  console.log(`All Information-like patterns:`, allInfoPatterns);
+  
   workingText = workingText.replace(/\+?\s*Information\s*\(\d+\)\s*:\s*/g, ' ');
   console.log(`Removed Information patterns, text length: ${originalLength} -> ${workingText.length}`);
   
