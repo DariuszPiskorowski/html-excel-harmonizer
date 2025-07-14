@@ -60,6 +60,9 @@ export const parseDtcMaskGroups = (textContent: string): ParsedGroup[] => {
   const groupSections = textContent.split('DTC_MASK');
   console.log(`Found ${groupSections.length} potential groups after splitting by DTC_MASK`);
   
+  // Pierwsza sekcja to grupa przed pierwszym DTC_MASK - też ją parsujemy!
+  // Reszta sekcji to treść po każdym DTC_MASK
+  
   // Sprawdź długość każdej sekcji
   groupSections.forEach((section, index) => {
     console.log(`Section ${index}: length=${section.length}, starts with: "${section.substring(0, 50)}"`);
