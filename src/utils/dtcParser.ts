@@ -116,7 +116,17 @@ export const parseDtcMaskGroups = (textContent: string): ParsedGroup[] => {
   const dtcMaskCount = (workingText.match(/DTC_MASK/g) || []).length;
   console.log(`Found ${dtcMaskCount} DTC_MASK occurrences in cleaned text`);
   
+  // KLUCZOWE: Sprawdź czy w ogóle są jakieś DTC_MASK
+  if (dtcMaskCount === 0) {
+    console.log("ERROR: No DTC_MASK found in working text after cleaning!");
+    console.log("Working text preview:", workingText.substring(0, 500));
+    return groups;
+  }
+  
+  console.log("Working text preview after cleaning:", workingText.substring(0, 200));
+  
   // Parsuj grupy używając DTC_MASK jako separatora
+  console.log("Starting group parsing loop...");
   let currentPos = 0;
   
   while (currentPos < workingText.length) {
