@@ -6,10 +6,11 @@ export const parseHtmlContent = (htmlContent: string): ParsedGroup[] => {
   console.log("=== STARTING HTML PARSING ===");
   console.log("Original HTML length:", htmlContent.length);
   
-  // Zamień &nbsp; na spacje i usuń HTML tagi
+  // Zamień &nbsp; na spacje, usuń HTML tagi i usuń tekst "Information (x):"
   const textContent = htmlContent
     .replace(/&nbsp;/g, ' ')
     .replace(/<[^>]*>/g, ' ')
+    .replace(/\+\s*Information\s*\(\d+\)\s*:\s*/g, ' ') // Usuń "Information (x):"
     .replace(/\s+/g, ' ')
     .trim();
   
