@@ -45,6 +45,11 @@ export const parseHtmlContent = (htmlContent: string): ParsedGroup[] => {
     });
   });
   
+  // Sprawdź sam początek tekstu - może pierwsza grupa jest przed pierwszym DTC_MASK?
+  console.log("=== CHECKING TEXT BEGINNING FOR FIRST ERROR ===");
+  console.log("First 500 characters:", textContent.substring(0, 500));
+  console.log("Looking for E10300 in beginning:", textContent.substring(0, 1000).indexOf("E10300"));
+  
   // Sprawdź ile potencjalnych DTC_MASK występuje w tekście
   const dtcOccurrences = (textContent.match(/DTC_MASK/g) || []).length;
   console.log(`TOTAL DTC_MASK occurrences in text: ${dtcOccurrences}`);
