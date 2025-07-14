@@ -51,18 +51,26 @@ export const parseDtcMaskGroups = (textContent: string): ParsedGroup[] => {
   console.log("=== STARTING SIMPLE PARSING ===");
   
   // Znajdź pozycję startu - różne możliwe wzorce
+  console.log("Searching for Primary section...");
+  console.log("Text preview (first 1000 chars):", textContent.substring(0, 1000));
+  
   const startPatterns = [
     /(Primary\s+(?:results|events)\s*\(\d+\)\s*:)/i,
     /(Results\s*\(\d+\)\s*:)/i,
     /(Events\s*\(\d+\)\s*:)/i,
-    /(Primary.*?:)/i
+    /(Primary.*?:)/i,
+    // Dodajmy jeszcze więcej wzorców
+    /(Primary.*?\(\d+\))/i,
+    /Primary/i
   ];
   
   let startMatch = null;
   let startPattern = '';
   
-  for (const pattern of startPatterns) {
+  for (let i = 0; i < startPatterns.length; i++) {
+    const pattern = startPatterns[i];
     startMatch = textContent.match(pattern);
+    console.log(`Pattern ${i + 1} (${pattern.source}):`, startMatch ? `FOUND: "${startMatch[1]}"` : "NOT FOUND");
     if (startMatch) {
       startPattern = startMatch[1];
       break;
