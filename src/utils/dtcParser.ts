@@ -117,6 +117,10 @@ export const parseDtcMaskGroups = (textContent: string): ParsedGroup[] => {
     };
     
     extractAdditionalInfo(groupContent, group);
+    
+    console.log(`Group ${groupCounter} firstLine: "${group.firstLine}"`);
+    console.log(`Group ${groupCounter} details: dtcCode="${dtcCode}", hexNumber="${hexNumber}", decNumber="${decNumber}"`);
+    
     groups.push(group);
   }
   
