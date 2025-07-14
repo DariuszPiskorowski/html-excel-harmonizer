@@ -24,5 +24,15 @@ export const parseHtmlContent = (htmlContent: string): ParsedGroup[] => {
   
   console.log(`Parsed ${groups.length} groups total`);
   console.log("Sample groups with date/odometer:", groups.filter(g => g.date || g.odometer));
+  
+  // DEBUG: Pokaż wszystkie sparsowane grupy
+  groups.forEach((group, index) => {
+    console.log(`Final Group ${index + 1} (${group.id}):`, {
+      number1: group.number1,
+      number2: group.number2,
+      firstLine: group.firstLine.substring(0, 50) + "..."
+    });
+  });
+  
   return groups;
 };

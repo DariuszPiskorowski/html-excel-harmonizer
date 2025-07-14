@@ -56,6 +56,15 @@ export const parseDtcMaskGroups = (textContent: string): ParsedGroup[] => {
   const matches = Array.from(textContent.matchAll(dtcPattern));
   console.log(`Found ${matches.length} DTC_MASK patterns`);
   
+  // DEBUG: Pokaż wszystkie znalezione matches
+  matches.forEach((match, index) => {
+    console.log(`Match ${index + 1}:`, {
+      fullMatch: match[0],
+      dtcCode: match[3],
+      position: match.index
+    });
+  });
+  
   for (let i = 0; i < matches.length; i++) {
     const match = matches[i];
     const nextMatch = matches[i + 1];
@@ -114,6 +123,15 @@ export const parsePCodeGroups = (textContent: string): ParsedGroup[] => {
   const pMatches = Array.from(textContent.matchAll(pCodePattern));
   
   console.log(`Found ${pMatches.length} P-code patterns`);
+  
+  // DEBUG: Pokaż wszystkie znalezione P-code matches
+  pMatches.forEach((match, index) => {
+    console.log(`P-code Match ${index + 1}:`, {
+      fullMatch: match[0],
+      pCode: match[1],
+      position: match.index
+    });
+  });
   
   for (let i = 0; i < pMatches.length; i++) {
     const pMatch = pMatches[i];
