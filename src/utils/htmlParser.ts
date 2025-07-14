@@ -33,12 +33,16 @@ export const parseHtmlContent = (htmlContent: string): ParsedGroup[] => {
   console.log(`All DTC_MASK positions:`, dtcPositions);
   console.log(`Total found: ${dtcPositions.length}`);
   
-  // Pokaż kontekst dla każdego DTC_MASK
-  dtcPositions.forEach((pos, index) => {
-    const contextStart = Math.max(0, pos - 50);
-    const contextEnd = Math.min(textContent.length, pos + 150);
+  // Pokaż kontekst dla pierwszych 3 DTC_MASK żeby zobaczyć co przeszkadza w parsowaniu
+  dtcPositions.slice(0, 3).forEach((pos, index) => {
+    const contextStart = Math.max(0, pos - 100);
+    const contextEnd = Math.min(textContent.length, pos + 250);
     const context = textContent.substring(contextStart, contextEnd);
-    console.log(`DTC_MASK ${index + 1} context:`, context);
+    console.log(`DTC_MASK ${index + 1} EXTENDED context:`, context);
+    console.log(`DTC_MASK ${index + 1} character analysis:`, {
+      beforeDTC: textContent.substring(pos - 20, pos),
+      afterDTC: textContent.substring(pos, pos + 100)
+    });
   });
   
   // Sprawdź ile potencjalnych DTC_MASK występuje w tekście
