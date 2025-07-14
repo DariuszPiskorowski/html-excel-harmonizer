@@ -51,9 +51,19 @@ export const parseDtcMaskGroups = (textContent: string): ParsedGroup[] => {
   console.log("=== STARTING DTC_MASK PARSING ===");
   console.log("DTC_MASK is at the END of each group, using as separator");
   
+  // Sprawdź ile razy występuje DTC_MASK w tekście
+  const dtcMaskOccurrences = (textContent.match(/DTC_MASK/g) || []).length;
+  console.log(`TOTAL DTC_MASK occurrences in text: ${dtcMaskOccurrences}`);
+  console.log(`Expected groups should be: ${dtcMaskOccurrences}`);
+  
   // Podziel tekst używając DTC_MASK jako separatora
   const groupSections = textContent.split(/DTC_MASK[^P]*?(?=P|$)/);
   console.log(`Found ${groupSections.length} potential groups after splitting by DTC_MASK`);
+  
+  // Sprawdź długość każdej sekcji
+  groupSections.forEach((section, index) => {
+    console.log(`Section ${index}: length=${section.length}, starts with: "${section.substring(0, 50)}"`);
+  });
   
   // Parsuj każdą sekcję jako osobną grupę
   groupSections.forEach((section, index) => {
