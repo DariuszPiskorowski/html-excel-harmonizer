@@ -21,4 +21,4 @@ export const odometerPatterns = [
 // Prosty wzorzec DTC po usunięciu "Information (x):" z tekstu
 export const dtcPattern = /DTC_MASK\s*[:\$]*\s*([A-Fa-f0-9]+)\s*[\/\\]\s*([A-Fa-f0-9]+)\s+([A-Z0-9]+)\s*\(\s*\$?\s*([A-Fa-f0-9]+)\s*[\/\\]\s*(\d+)\s*\)/g;
 
-export const pCodePattern = /([P][A-Z0-9]{6})\s*\(\$([A-Fa-f0-9]+)\s*\/\s*(\d+)\)/g;
+export const pCodePattern = /([PUBCDEFT][A-Z0-9]{6})\s*\(\$([A-Fa-f0-9]+)\s*\/\s*(\d+)\)/g;
