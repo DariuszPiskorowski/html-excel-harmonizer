@@ -36,7 +36,7 @@ jobs:
       - name: Init Tauri (if not present)
         run: |
           if (!(Test-Path "src-tauri/tauri.conf.json")) {
-            npx tauri init --ci --app-name Harmonizer --window-title Harmonizer --dist-dir ../dist
+            npx tauri init --ci --app-name Harmonizer --window-title Harmonizer --frontend-dist ../dist
           }
         shell: pwsh
 
