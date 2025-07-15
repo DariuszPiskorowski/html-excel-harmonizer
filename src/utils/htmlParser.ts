@@ -17,7 +17,7 @@ export const parseHtmlContent = (htmlContent: string): ParsedGroup[] => {
   console.log("Text content after cleaning (removed Information):", textContent.substring(0, 500));
     
   // Znajdź pozycję "Primary events (xx):" lub "Primary results (xx):" i zacznij parsowanie od tej pozycji
-  const primaryMatch = textContent.match(/Primary\s+(events|results)\s*\(\d+\)\s*:/);
+  const primaryMatch = textContent.match(/Primary\s+(events|results)\s*\(\d+\)\s*:/i);
   if (primaryMatch) {
     const startPosition = textContent.indexOf(primaryMatch[0]) + primaryMatch[0].length;
     textContent = textContent.substring(startPosition);
