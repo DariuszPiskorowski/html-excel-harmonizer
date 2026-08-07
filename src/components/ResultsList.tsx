@@ -180,9 +180,6 @@ export const ResultsList = ({ groups }: ResultsListProps) => {
                         {group.firstLine}
                       </span>
                     </div>
-                    <span className="font-mono text-sm bg-muted px-2 py-1 rounded">
-                      {group.firstLine}
-                    </span>
                     <div className="flex gap-2">
                       <Badge variant={group.date && group.odometer ? "default" : "secondary"}>
                         {group.date && group.odometer ? "Complete data" : "Incomplete"}
