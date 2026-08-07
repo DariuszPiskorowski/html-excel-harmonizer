@@ -1,7 +1,11 @@
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ExternalLink, EyeOff, Eye, FileDown } from "lucide-react";
+import jsPDF from "jspdf";
 
 interface ParsedGroup {
   id: string;
