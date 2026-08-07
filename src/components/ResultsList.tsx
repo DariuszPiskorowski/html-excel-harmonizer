@@ -333,7 +333,7 @@ export const ResultsList = ({ groups }: ResultsListProps) => {
                 </CardContent>
               </Card>
               
-              {index < sortedGroups.length - 1 && (
+              {index < visibleGroups.length - 1 && (
                 <Separator className="my-6" />
               )}
             </div>
