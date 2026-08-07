@@ -1,7 +1,11 @@
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ExternalLink, EyeOff, Eye, FileDown } from "lucide-react";
+import jsPDF from "jspdf";
 
 interface ParsedGroup {
   id: string;
@@ -36,62 +40,146 @@ interface ResultsListProps {
 }
 
 export const ResultsList = ({ groups }: ResultsListProps) => {
-  console.log("=== RESULTS LIST RENDERING ===");
-  console.log(`Total groups received: ${groups.length}`);
-  
-  // Log Jira data for each group
-  groups.forEach((group, index) => {
-    console.log(`Group ${index} (${group.id}):`);
-    console.log(`  - number2: ${group.number2}`);
-    console.log(`  - has jiraData: ${!!group.jiraData}`);
-    console.log(`  - jiraData length: ${group.jiraData?.length || 0}`);
-    if (group.jiraData && group.jiraData.length > 0) {
-      console.log(`  - jiraData content:`, group.jiraData);
-      // SPRAWDŹ DOKŁADNIE JAKIE LINKI OTRZYMUJEMY
-      group.jiraData.forEach((jira, jiraIndex) => {
-        console.log(`    Jira ${jiraIndex} link: "${jira.link}"`);
-      });
-    }
-  });
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
 
-  // Sort: first groups with date and odometer, then others
-  const sortedGroups = [...groups].sort((a, b) => {
-    const aHasDateOdometer = a.date && a.odometer;
-    const bHasDateOdometer = b.date && b.odometer;
-    
-    if (aHasDateOdometer && !bHasDateOdometer) return -1;
-    if (!aHasDateOdometer && bHasDateOdometer) return 1;
-    return 0;
-  });
+  // Sort: groups with a date first, then the rest
+  const sortedGroups = useMemo(
+    () =>
+      [...groups].sort((a, b) => {
+        const aHasDate = a.date ? 1 : 0;
+        const bHasDate = b.date ? 1 : 0;
+        if (aHasDate !== bHasDate) return bHasDate - aHasDate;
+        const aHasOdo = a.odometer ? 1 : 0;
+        const bHasOdo = b.odometer ? 1 : 0;
+        return bHasOdo - aHasOdo;
+      }),
+    [groups]
+  );
+
+  const visibleGroups = sortedGroups.filter((g) => !hiddenIds.has(g.id));
+
+  const toggleSelected = (id: string, checked: boolean) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  };
+
+  const hideSelected = () => {
+    setHiddenIds((prev) => new Set([...prev, ...selectedIds]));
+    setSelectedIds(new Set());
+  };
+
+  const showAll = () => setHiddenIds(new Set());
+
+  const exportPdf = () => {
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+    const margin = 40;
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const maxWidth = doc.internal.pageSize.getWidth() - margin * 2;
+    let y = margin;
+
+    const write = (text: string, size = 10, bold = false) => {
+      doc.setFontSize(size);
+      doc.setFont("helvetica", bold ? "bold" : "normal");
+      const lines = doc.splitTextToSize(text, maxWidth);
+      lines.forEach((line: string) => {
+        if (y > pageHeight - margin) {
+          doc.addPage();
+          y = margin;
+        }
+        doc.text(line, margin, y);
+        y += size + 4;
+      });
+    };
+
+    write("Analysis Results", 16, true);
+    write(`Groups: ${visibleGroups.length}`, 10);
+    y += 6;
+
+    visibleGroups.forEach((group, i) => {
+      y += 8;
+      write(`${i + 1}. ${group.firstLine}`, 12, true);
+      write(`Code: ${group.number1}   Hex: $${group.number2}`);
+      write(`Date: ${group.date || "No data"}   Odometer: ${group.odometer || "No data"}`);
+      if (group.priority) write(`Priority: ${group.priority}`);
+      if (group.frequency) write(`Frequency: ${group.frequency}`);
+      if (group.dtcStatus) write(`DTC Status: ${group.dtcStatus}`);
+      if (group.description) write(`Description: ${group.description}`);
+
+      const e = group.excelData;
+      if (e) {
+        write("DTC Excel data:", 10, true);
+        if (e.suspensionPeriod) write(`  Suspension period: ${e.suspensionPeriod}`);
+        if (e.troubleshootingTime) write(`  Troubleshooting time: ${e.troubleshootingTime}`);
+        if (e.qualificationCondition) write(`  Qualification condition: ${e.qualificationCondition}`);
+        if (e.resetCondition) write(`  Reset condition: ${e.resetCondition}`);
+        if (e.enableCondition) write(`  Enable condition: ${e.enableCondition}`);
+      }
+
+      if (group.jiraData && group.jiraData.length > 0) {
+        write(`Jira entries (${group.jiraData.length}):`, 10, true);
+        group.jiraData.forEach((j, idx) => {
+          if (j.creationDate) write(`  [${idx + 1}] Creation Date: ${j.creationDate}`);
+          if (j.status) write(`  [${idx + 1}] Status: ${j.status}`);
+          if (j.description) write(`  [${idx + 1}] Description: ${j.description}`);
+          if (j.fix) write(`  [${idx + 1}] Fix: ${j.fix}`);
+          if (j.link) write(`  [${idx + 1}] Link: ${j.link}`);
+        });
+      }
+    });
+
+    doc.save("analysis-results.pdf");
+  };
 
   if (groups.length === 0) {
-    console.log("No groups to display");
     return null;
   }
-
-  console.log("About to render groups with Jira data...");
 
   return (
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-2xl font-semibold">Analysis Results</h2>
         <p className="text-muted-foreground">
-          Found {groups.length} diagnostic error groups
+          Showing {visibleGroups.length} of {groups.length} diagnostic error groups
         </p>
       </div>
-      
+
+      <div className="flex flex-wrap justify-center gap-2">
+        <Button variant="secondary" onClick={hideSelected} disabled={selectedIds.size === 0}>
+          <EyeOff className="h-4 w-4 mr-2" />
+          Hide selected ({selectedIds.size})
+        </Button>
+        <Button variant="outline" onClick={showAll} disabled={hiddenIds.size === 0}>
+          <Eye className="h-4 w-4 mr-2" />
+          Show all ({hiddenIds.size} hidden)
+        </Button>
+        <Button onClick={exportPdf} disabled={visibleGroups.length === 0}>
+          <FileDown className="h-4 w-4 mr-2" />
+          Save as PDF
+        </Button>
+      </div>
+
       <div className="space-y-4">
-        {sortedGroups.map((group, index) => {
-          console.log(`Rendering group ${index}: ${group.id}, Jira entries: ${group.jiraData?.length || 0}`);
-          
+        {visibleGroups.map((group, index) => {
           return (
             <div key={group.id}>
               <Card className="border-l-4 border-l-primary">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center justify-between">
-                    <span className="font-mono text-sm bg-muted px-2 py-1 rounded">
-                      {group.firstLine}
-                    </span>
+                  <CardTitle className="text-lg flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <Checkbox
+                        checked={selectedIds.has(group.id)}
+                        onCheckedChange={(checked) => toggleSelected(group.id, checked === true)}
+                        aria-label="Select group to hide"
+                      />
+                      <span className="font-mono text-sm bg-muted px-2 py-1 rounded">
+                        {group.firstLine}
+                      </span>
+                    </div>
                     <div className="flex gap-2">
                       <Badge variant={group.date && group.odometer ? "default" : "secondary"}>
                         {group.date && group.odometer ? "Complete data" : "Incomplete"}
@@ -245,7 +333,7 @@ export const ResultsList = ({ groups }: ResultsListProps) => {
                 </CardContent>
               </Card>
               
-              {index < sortedGroups.length - 1 && (
+              {index < visibleGroups.length - 1 && (
                 <Separator className="my-6" />
               )}
             </div>
